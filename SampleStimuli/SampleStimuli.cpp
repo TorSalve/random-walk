@@ -11,10 +11,21 @@
 #include <UltrahapticsTimePointStreaming.hpp>
 
 #include "LeapListener.h"
+#include "Shapes.h"
+#include "Waveforms.h"
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323
-#endif
+using Seconds = std::chrono::duration<float>;
+
+using WF = Waveforms::One;
+
+static auto start_time = std::chrono::steady_clock::now();
+
+struct Config {
+    Config(ModulatedPoint* mp, Shapes::Circle* c, WF* wf) : modulatedPoint(mp), circle(c), waveform(wf) {}
+    ModulatedPoint* modulatedPoint;
+    Shapes::Circle* circle;
+    WF* waveform;
+};
 
 // Callback function for filling out complete device output states through time
 void my_emitter_callback(const Ultrahaptics::TimePointStreaming::Emitter& timepoint_emitter,
@@ -23,11 +34,17 @@ void my_emitter_callback(const Ultrahaptics::TimePointStreaming::Emitter& timepo
     void* user_pointer)
 {
     // Cast the user pointer to the struct that describes the control point behaviour
-    ModulatedPoint* my_modulated_point = static_cast<ModulatedPoint*>(user_pointer);
+    Config* config = static_cast<Config*>(user_pointer);
 
     // Get a copy of the hand data.
-    LeapOutput leapOutput = my_modulated_point->hand.getLeapOutput();
-    std::cout << leapOutput.hand_present << " - " << my_modulated_point->sample_number << " - (" << leapOutput.palm_position.x << ", " << leapOutput.palm_position.y << ", " << leapOutput.palm_position.z << ")" << std::endl;
+    LeapOutput leapOutput = config->modulatedPoint->hand.getLeapOutput();
+    //std::cout << leapOutput.hand_present << " - " << my_modulated_point->sample_number << " - (" << leapOutput.palm_position.x << ", " << leapOutput.palm_position.y << ", " << leapOutput.palm_position.z << ")" << std::endl;
+
+    /*float minZ = .05f;
+    float maxZ = .20f;
+    float clamped = std::clamp(leapOutput.palm_position.z, minZ, maxZ);
+    float intensity = (clamped - minZ) / (maxZ - minZ);*/
+    //std::cout << leapOutput.hand_present << " - " << intensity << std::endl;
 
     // Loop through time, setting control point data
     for (auto& sample : interval)
@@ -36,14 +53,21 @@ void my_emitter_callback(const Ultrahaptics::TimePointStreaming::Emitter& timepo
             sample.persistentControlPoint(0).setIntensity(0.0f);
             continue;
         }
+
+        const Seconds t = sample - start_time;
+        const Ultrahaptics::Vector3 position = config->circle->evaluateAt(t) + leapOutput.palm_position;
+        //const Ultrahaptics::Vector3 position = leapOutput.palm_position;
+        const float intensity = config->waveform->evaluateAt(t);
+        // std::cout << intensity << std::endl;
+
         // Project the control point onto the palm
-        sample.persistentControlPoint(0).setPosition(leapOutput.palm_position);
+        sample.persistentControlPoint(0).setPosition(position);
 
         // Set the intensity of the point using the waveform. If the hand is not present, intensity is 0
-        sample.persistentControlPoint(0).setIntensity(1.0f);
+        sample.persistentControlPoint(0).setIntensity(intensity);
 
         // Increment sample count
-        my_modulated_point->sample_number++;
+        config->modulatedPoint->sample_number++;
     }
 }
 
@@ -67,8 +91,18 @@ int main(int argc, char* argv[])
     
     point.sample_number = 0;
 
+    // Create a structure containing our control point data and fill it in
+    Shapes::Circle circle;
+    // Set the radius of the circle that the point is traversing
+    circle.radius = 2.0f * Ultrahaptics::Units::centimetres;
+  
+    WF waveform;
+    // waveform.setFactor(2);
+
+    Config config = Config(&point, &circle, &waveform);
+
     // Set the callback function to the callback written above
-    emitter.setEmissionCallback(my_emitter_callback, &point);
+    emitter.setEmissionCallback(my_emitter_callback, &config);
 
     // Start the array
     emitter.start();

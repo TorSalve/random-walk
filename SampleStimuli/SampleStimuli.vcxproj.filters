@@ -35,5 +35,8 @@
     <ClInclude Include="Shapes.h">
       <Filter>Header Files\Classes</Filter>
     </ClInclude>
+    <ClInclude Include="Waveforms.h">
+      <Filter>Header Files\Classes</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
