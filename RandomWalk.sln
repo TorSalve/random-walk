@@ -3,9 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31205.134
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RandomWalk", "RandomWalk\RandomWalk.vcxproj", "{E19061A7-BADD-4F04-B350-604818702D9D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RandomWalk_OLDAPI", "RandomWalk\RandomWalk.vcxproj", "{E19061A7-BADD-4F04-B350-604818702D9D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SampleStimuli", "SampleStimuli\SampleStimuli.vcxproj", "{21BFA471-57F5-466D-8480-FE5E860F8FE0}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SampleStimuli_OLDAPI", "SampleStimuli\SampleStimuli.vcxproj", "{21BFA471-57F5-466D-8480-FE5E860F8FE0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KeyboardControlledStimuli", "KeyboardControlledStimuli\KeyboardControlledStimuli.vcxproj", "{387348A7-576B-4BE3-82F5-20E320499091}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CleanTest", "CleanTest\CleanTest.vcxproj", "{0B3176D1-E255-4127-B63C-71FBFC14C10B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +35,22 @@ Global
 		{21BFA471-57F5-466D-8480-FE5E860F8FE0}.Release|x64.Build.0 = Release|x64
 		{21BFA471-57F5-466D-8480-FE5E860F8FE0}.Release|x86.ActiveCfg = Release|Win32
 		{21BFA471-57F5-466D-8480-FE5E860F8FE0}.Release|x86.Build.0 = Release|Win32
+		{387348A7-576B-4BE3-82F5-20E320499091}.Debug|x64.ActiveCfg = Debug|x64
+		{387348A7-576B-4BE3-82F5-20E320499091}.Debug|x64.Build.0 = Debug|x64
+		{387348A7-576B-4BE3-82F5-20E320499091}.Debug|x86.ActiveCfg = Debug|Win32
+		{387348A7-576B-4BE3-82F5-20E320499091}.Debug|x86.Build.0 = Debug|Win32
+		{387348A7-576B-4BE3-82F5-20E320499091}.Release|x64.ActiveCfg = Release|x64
+		{387348A7-576B-4BE3-82F5-20E320499091}.Release|x64.Build.0 = Release|x64
+		{387348A7-576B-4BE3-82F5-20E320499091}.Release|x86.ActiveCfg = Release|Win32
+		{387348A7-576B-4BE3-82F5-20E320499091}.Release|x86.Build.0 = Release|Win32
+		{0B3176D1-E255-4127-B63C-71FBFC14C10B}.Debug|x64.ActiveCfg = Debug|x64
+		{0B3176D1-E255-4127-B63C-71FBFC14C10B}.Debug|x64.Build.0 = Debug|x64
+		{0B3176D1-E255-4127-B63C-71FBFC14C10B}.Debug|x86.ActiveCfg = Debug|Win32
+		{0B3176D1-E255-4127-B63C-71FBFC14C10B}.Debug|x86.Build.0 = Debug|Win32
+		{0B3176D1-E255-4127-B63C-71FBFC14C10B}.Release|x64.ActiveCfg = Release|x64
+		{0B3176D1-E255-4127-B63C-71FBFC14C10B}.Release|x64.Build.0 = Release|x64
+		{0B3176D1-E255-4127-B63C-71FBFC14C10B}.Release|x86.ActiveCfg = Release|Win32
+		{0B3176D1-E255-4127-B63C-71FBFC14C10B}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
