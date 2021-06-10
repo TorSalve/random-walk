@@ -175,6 +175,7 @@
     <ClCompile Include="KeyboardControlledPoint.cpp" />
     <ClCompile Include="KeyboardControlledSensationLibrary.cpp" />
     <ClCompile Include="KeyboardControlledStimuli.cpp" />
+    <ClCompile Include="MariannasParameterSpace.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="StandardSensations.ssp" />
@@ -184,6 +185,7 @@
     <ClInclude Include="ExploringSensationLibrary.h" />
     <ClInclude Include="Entries.h" />
     <ClInclude Include="LeapHandConverter.hpp" />
+    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -10,7 +10,8 @@ namespace RandomWalk::HandTracking {
         LeapOutput() noexcept
         {}
 
-        Ultraleap::Haptics::Vector3 palm_position;
+        Ultrahaptics::Vector3 palm_position;
+        //Leap::FingerList fingers;
         bool hand_present = false;
     };
 
@@ -48,6 +49,7 @@ namespace RandomWalk::HandTracking {
 
                 // Update the hand data with the current information
                 local_hand_data.palm_position = ulh_palm_position;
+                //local_hand_data.fingers = hand.fingers();
                 local_hand_data.hand_present = true;
             }
 
