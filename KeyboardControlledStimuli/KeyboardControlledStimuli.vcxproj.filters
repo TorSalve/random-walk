@@ -27,6 +27,9 @@
     <ClCompile Include="KeyboardControlledSensationLibrary.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LeapTrackingParameterSpace.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="MariannasParameterSpace.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

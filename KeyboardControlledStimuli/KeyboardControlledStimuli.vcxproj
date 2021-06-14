@@ -175,6 +175,7 @@
     <ClCompile Include="KeyboardControlledPoint.cpp" />
     <ClCompile Include="KeyboardControlledSensationLibrary.cpp" />
     <ClCompile Include="KeyboardControlledStimuli.cpp" />
+    <ClCompile Include="LeapTrackingParameterSpace.cpp" />
     <ClCompile Include="MariannasParameterSpace.cpp" />
   </ItemGroup>
   <ItemGroup>

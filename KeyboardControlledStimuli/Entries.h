@@ -8,6 +8,10 @@ namespace RandomWalk::KeyboardControlledPoint {
     int entry(int argc, char* argv[]);
 }
 
+namespace RandomWalk::LeapTrackingParameterSpace {
+    int entry(int argc, char* argv[]);
+}
+
 namespace RandomWalk::MariannasParameterSpace {
     int entry(int argc, char* argv[]);
 }

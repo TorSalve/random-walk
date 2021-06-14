@@ -3,12 +3,14 @@
 #include <iostream>
 #include <vector>
 
+#include <ultraleap/haptics/vector3.hpp>
+
 namespace RandomWalk::Utils {
 
-    std::vector<double> linspace(double start, double end, int num_in)
-    {
+    template <typename IntType>
+    std::vector<IntType> linspace(IntType start, IntType end, int num_in) {
 
-        std::vector<double> linspaced;
+        std::vector<IntType> linspaced;
 
         double num = static_cast<double>(num_in);
 
@@ -28,13 +30,49 @@ namespace RandomWalk::Utils {
         linspaced.push_back(end); // I want to ensure that start and end
                                   // are exactly the same as the input
         return linspaced;
-    }
-
-    void print_vector(std::vector<double> vec)
-    {
+    };
+    
+    template <typename IntType>
+    void print_vector(std::vector<IntType> vec) {
         std::cout << "size: " << vec.size() << std::endl;
         for (double d : vec)
             std::cout << d << " ";
         std::cout << std::endl;
+    };
+    
+    constexpr unsigned int hash(const char* s, int off = 0) {
+        return !s[off] ? 5381 : (hash(s, off + 1) * 33) ^ s[off];
+    };
+
+
+    template <typename IntType>
+    std::vector<IntType> range(IntType start, IntType stop, IntType step)
+    {
+        if (step == IntType(0))
+        {
+            throw std::invalid_argument("step for range must be non-zero");
+        }
+
+        std::vector<IntType> result;
+        IntType i = start;
+        while ((step > 0) ? (i < stop) : (i > stop))
+        {
+            result.push_back(i);
+            i += step;
+        }
+
+        return result;
+    }
+
+    template <typename IntType>
+    std::vector<IntType> range(IntType start, IntType stop)
+    {
+        return range(start, stop, IntType(1));
+    }
+
+    template <typename IntType>
+    std::vector<IntType> range(IntType stop)
+    {
+        return range(IntType(0), stop, IntType(1));
     }
 }
