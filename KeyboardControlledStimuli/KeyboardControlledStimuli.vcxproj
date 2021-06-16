@@ -171,21 +171,30 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Configurations.cpp" />
     <ClCompile Include="ExploringSensationLibrary.cpp" />
+    <ClCompile Include="HandTracking.cpp" />
     <ClCompile Include="KeyboardControlledPoint.cpp" />
     <ClCompile Include="KeyboardControlledSensationLibrary.cpp" />
     <ClCompile Include="KeyboardControlledStimuli.cpp" />
     <ClCompile Include="LeapTrackingParameterSpace.cpp" />
     <ClCompile Include="MariannasParameterSpace.cpp" />
+    <ClCompile Include="RandomConfigurationsKeyboardControl.cpp" />
+    <ClCompile Include="easywsclient.cpp" />
+    <ClCompile Include="RandomConfigurationsWebsocketControl.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="StandardSensations.ssp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Configurations.h" />
     <ClInclude Include="HandTracking.h" />
     <ClInclude Include="ExploringSensationLibrary.h" />
     <ClInclude Include="Entries.h" />
+    <ClInclude Include="easywsclient.hpp" />
+    <ClInclude Include="json.hpp" />
     <ClInclude Include="LeapHandConverter.hpp" />
+    <ClInclude Include="Parameters.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

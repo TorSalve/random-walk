@@ -12,5 +12,9 @@ int main(int argc, char *argv[])
 
     //return RandomWalk::LeapTrackingParameterSpace::entry(argc, argv);
     
-    return RandomWalk::MariannasParameterSpace::entry(argc, argv);
+    // return RandomWalk::MariannasParameterSpace::entry(argc, argv);
+    
+    return RandomWalk::Parameters::entry(argc, argv);
+
+    // return RandomWalk::Parameters::Websockets::entry(argc, argv);
 }

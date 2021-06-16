@@ -116,6 +116,28 @@ namespace RandomWalk::MariannasParameterSpace
         };
     };
 
+    class CircSm : public Pattern {
+    public:
+        CircSm() {
+            pattern = {
+                {1, 1}, {1, 2}, {2, 2}, {2, 1},
+            };
+            duration = 200;
+            m_name = "CircSm";
+        };
+    };
+
+    class CircGrow : public Pattern {
+    public:
+        CircGrow() {
+            pattern = {
+                {1, 1}, {1, 2}, {2, 2}, {2, 1}, {0, 0}, {0, 1}, {0, 2}, {0, 3}, {1, 3}, {2, 3}, {3, 3}, {3, 2}, {3, 1}, {3, 0}, {2, 0}, {1, 0}
+            };
+            duration = 200;
+            m_name = "CircGrow";
+        };
+    };
+
     // Structure for passing information on the type of point to create
     class Config
     {
@@ -140,11 +162,11 @@ namespace RandomWalk::MariannasParameterSpace
         RenderMode mode = RenderMode::DYNAMIC;
         Pattern pattern;
     private:
-        const float cell_size_x = 20.f; // in decimeter 20 = 2cm
+        const float cell_size_x = 15.f; // in decimeter 20 = 2cm
         float cell_offset_x = cell_size_x / 2;
         float cell_max_x = cell_size_x + cell_offset_x;
 
-        const float cell_size_z = 20.f; // in decimeter 20 = 2cm
+        const float cell_size_z = 15.f; // in decimeter 20 = 2cm
         float cell_offset_z = cell_size_z / 2;
         float cell_max_z = cell_size_z + cell_offset_z;
 
@@ -313,7 +335,7 @@ namespace RandomWalk::MariannasParameterSpace
 
         int pattern_current = 0;
         std::vector<Pattern> available_patterns = {
-            Circ(), ULtBR(), BLtBR(), BLtUR(), ULtUR()
+            Circ(), CircSm(), CircGrow(), ULtBR(), BLtBR(), BLtUR(), ULtUR()
         };
         
         while (true)
@@ -442,12 +464,12 @@ namespace RandomWalk::MariannasParameterSpace
                     break;
 
                 case Utils::hash("k"):
-                    current = std::clamp((int)log2(point.pattern.get_duration()) - duration_step, duration_step, 10);
+                    current = (float)std::clamp((int)log2(point.pattern.get_duration()) - duration_step, duration_step, 10);
                     point.pattern.set_duration((int)powf(2, current));
                     action = "duration -";
                     break;
                 case Utils::hash("l"):
-                    current = std::clamp((int)log2(point.pattern.get_duration()) + duration_step, duration_step, 10);
+                    current = (float)std::clamp((int)log2(point.pattern.get_duration()) + duration_step, duration_step, 10);
                     point.pattern.set_duration((int)powf(2, current));
                     action = "duration +";
                     break;

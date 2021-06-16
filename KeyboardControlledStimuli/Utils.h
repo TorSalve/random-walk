@@ -2,6 +2,9 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
+#include <random>
+#include <iterator>
 
 #include <ultraleap/haptics/vector3.hpp>
 
@@ -35,10 +38,31 @@ namespace RandomWalk::Utils {
     template <typename IntType>
     void print_vector(std::vector<IntType> vec) {
         std::cout << "size: " << vec.size() << std::endl;
-        for (double d : vec)
+        for (IntType d : vec)
             std::cout << d << " ";
         std::cout << std::endl;
     };
+    
+    template <typename IntType>
+    void print_vector(std::string_view comment, std::vector<IntType> vec) {
+        std::cout << comment;
+        print_vector(vec);
+    }
+
+    template <typename IntType>
+    void print_map(const std::map<std::string, IntType>& m)
+    {
+        for (const auto& [key, value] : m) {
+            std::cout << key << " = " << value << "; ";
+        }
+        std::cout << "\n";
+    }
+
+    template <typename IntType>
+    void print_map(std::string_view comment, const std::map<std::string, IntType>& m) {
+        std::cout << comment;
+        print_map(m);
+    }
     
     constexpr unsigned int hash(const char* s, int off = 0) {
         return !s[off] ? 5381 : (hash(s, off + 1) * 33) ^ s[off];
@@ -74,5 +98,20 @@ namespace RandomWalk::Utils {
     std::vector<IntType> range(IntType stop)
     {
         return range(IntType(0), stop, IntType(1));
+    }
+
+    // https://stackoverflow.com/questions/6942273/how-to-get-a-random-element-from-a-c-container
+    template<typename Iter, typename RandomGenerator>
+    Iter select_randomly(Iter start, Iter end, RandomGenerator& g) {
+        std::uniform_int_distribution<> dis(0, std::distance(start, end) - 1);
+        std::advance(start, dis(g));
+        return start;
+    }
+
+    template<typename Iter>
+    Iter select_randomly(Iter start, Iter end) {
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        return select_randomly(start, end, gen);
     }
 }

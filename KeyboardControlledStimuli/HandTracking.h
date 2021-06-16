@@ -2,6 +2,7 @@
 
 #include <Leap.h>
 #include <list>
+#include <map>
 
 #include "ultraleap/haptics/library.hpp"
 
@@ -24,12 +25,24 @@ namespace RandomWalk::HandTracking {
         Ultrahaptics::Vector3 finger_root_ring;
         Ultrahaptics::Vector3 finger_root_pinky;
 
+        Ultrahaptics::Vector3 finger_intermediate_thumb;
+        Ultrahaptics::Vector3 finger_intermediate_index;
+        Ultrahaptics::Vector3 finger_intermediate_middle;
+        Ultrahaptics::Vector3 finger_intermediate_ring;
+        Ultrahaptics::Vector3 finger_intermediate_pinky;
+
+        Ultrahaptics::Vector3 finger_proximal_thumb;
+        Ultrahaptics::Vector3 finger_proximal_index;
+        Ultrahaptics::Vector3 finger_proximal_middle;
+        Ultrahaptics::Vector3 finger_proximal_ring;
+        Ultrahaptics::Vector3 finger_proximal_pinky;
+
         Ultrahaptics::Vector3 finger_tip_thumb;
         Ultrahaptics::Vector3 finger_tip_index;
         Ultrahaptics::Vector3 finger_tip_middle;
         Ultrahaptics::Vector3 finger_tip_ring;
         Ultrahaptics::Vector3 finger_tip_pinky;
-        
+
         //Leap::FingerList fingers;
         bool hand_present = false;
         bool hand_is_left = false;
@@ -75,6 +88,22 @@ namespace RandomWalk::HandTracking {
                     finger_roots.emplace_back(finger_root.x, finger_root.y, finger_root.z);
                 }
 
+                std::vector<Ultrahaptics::Vector3> finger_intermediates;
+                finger_intermediates.reserve(5);
+                for (auto& finger : hand.fingers())
+                {
+                    auto finger_intermediate = finger.bone(Leap::Bone::Type::TYPE_INTERMEDIATE).center();
+                    finger_intermediates.emplace_back(finger_intermediate.x, finger_intermediate.y, finger_intermediate.z);
+                }
+
+                std::vector<Ultrahaptics::Vector3> finger_proximals;
+                finger_proximals.reserve(5);
+                for (auto& finger : hand.fingers())
+                {
+                    auto finger_proximal = finger.bone(Leap::Bone::Type::TYPE_PROXIMAL).center();
+                    finger_proximals.emplace_back(finger_proximal.x, finger_proximal.y, finger_proximal.z);
+                }
+
                 std::vector<Ultrahaptics::Vector3> finger_tips;
                 finger_tips.reserve(5);
                 for (auto& finger : hand.fingers())
@@ -99,12 +128,23 @@ namespace RandomWalk::HandTracking {
                 local_hand_data.finger_root_ring = finger_roots[3];
                 local_hand_data.finger_root_pinky = finger_roots[4];
 
+                local_hand_data.finger_intermediate_thumb = finger_intermediates[0];
+                local_hand_data.finger_intermediate_index = finger_intermediates[1];
+                local_hand_data.finger_intermediate_middle = finger_intermediates[2];
+                local_hand_data.finger_intermediate_ring = finger_intermediates[3];
+                local_hand_data.finger_intermediate_pinky = finger_intermediates[4];
+
+                local_hand_data.finger_proximal_thumb = finger_proximals[0];
+                local_hand_data.finger_proximal_index = finger_proximals[1];
+                local_hand_data.finger_proximal_middle = finger_proximals[2];
+                local_hand_data.finger_proximal_ring = finger_proximals[3];
+                local_hand_data.finger_proximal_pinky = finger_proximals[4];
+
                 local_hand_data.finger_tip_thumb = finger_tips[0];
                 local_hand_data.finger_tip_index = finger_tips[1];
                 local_hand_data.finger_tip_middle = finger_tips[2];
                 local_hand_data.finger_tip_ring = finger_tips[3];
                 local_hand_data.finger_tip_pinky = finger_tips[4];
-
 
                 //local_hand_data.finger_tips = finger_tips;
                 //local_hand_data.fingers = hand.fingers();
@@ -132,4 +172,5 @@ namespace RandomWalk::HandTracking {
         }
     };
 
+    std::vector<std::vector<Ultrahaptics::Vector3>> translate_finger_output(LeapOutput* output);
 }

@@ -15,3 +15,11 @@ namespace RandomWalk::LeapTrackingParameterSpace {
 namespace RandomWalk::MariannasParameterSpace {
     int entry(int argc, char* argv[]);
 }
+
+namespace RandomWalk::Parameters {
+    int entry(int argc, char* argv[]);
+}
+
+namespace RandomWalk::Parameters::Websockets {
+    int entry(int argc, char* argv[]);
+}

@@ -1,3 +1,4 @@
+#pragma once
 /**
  * A collection of utilities to convert Leap Hand data into formats used by Sensations
  *
