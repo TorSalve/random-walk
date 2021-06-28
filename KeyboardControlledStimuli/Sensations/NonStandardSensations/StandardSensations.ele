@@ -1,0 +1,594 @@
+#[[ Standard Sensations
+#
+#   These are sensations which have been tested thoroughly, and are ready to use.
+#]]
+namespace StandardSensations
+{
+    #[[ Move a ControlPoint in a circle
+    #
+    #   Move the point with a fixed speed.
+    #
+    #   Changing radius or speed during playback can cause jumps in ControlPoint position.
+    #
+    #   @radius    - The radius of the circle (metres)
+    #   @position  - The position of circle (metres)
+    #   @rotation  - The rotation of the circle. If this is the identity, the circle is in the x-y
+    #                plane.
+    #   @speed     - The speed of the ControlPoint (metres per second)
+    #   @intensity - The intensity of the ControlPoint
+    #]]
+    circleWithFixedSpeed(
+        radius:Num = 0.02,
+        position:Vector3 = Vector3(0, 0, 0.2),
+        rotation:Matrix3x3 = Matrix3x3.identity,
+        speed:Num = 8,
+        intensity:Num = 1
+        ):SensationEvaluator
+    {
+        pathTransform = Transform.fromRotationAndTranslation(rotation, position)
+
+        circlePath = StandardPaths.circle(radius).applyTransform(pathTransform)
+        circleLength = StandardPaths.circleLength(radius)
+
+        pathEvaluator = renderPathWithFixedSpeed(circlePath, circleLength, speed)
+        intensityEvaluator = constantIntensity(intensity)
+
+        controlPointEvaluator = renderControlPoint(pathEvaluator, intensityEvaluator)
+        return = renderSensation(controlPointEvaluator)
+    }
+    
+    #[[ Move a ControlPoint in a circle
+    #
+    #   Move the point with a fixed angular frequency.
+    #
+    #   Changing frequency during playback can cause jumps in ControlPoint position.
+    #
+    #   @radius    - The radius of the circle (metres)
+    #   @position  - The position of circle (metres)
+    #   @rotation  - The rotation of the circle. If this is the identity, the circle is in the x-y
+    #                plane.
+    #   @frequency - The frequency at which the ControlPoint moves around the circle (Hz)
+    #   @intensity - The intensity of the Control Point
+    #]]
+    circleWithFixedFrequency(
+        radius:Num = 0.02,
+        position:Vector3 = Vector3(0, 0, 0.2),
+        rotation:Matrix3x3 = Matrix3x3.identity,
+        frequency:Num = 64,
+        intensity:Num = 1
+        ):SensationEvaluator
+    {
+        pathTransform = Transform.fromRotationAndTranslation(rotation, position)
+
+        circlePath = StandardPaths.circle(radius).applyTransform(pathTransform)
+
+        pathEvaluator = renderPathWithFixedFrequency(circlePath, frequency)
+        intensityEvaluator = constantIntensity(intensity)
+
+        controlPointEvaluator = renderControlPoint(pathEvaluator, intensityEvaluator)
+        return = renderSensation(controlPointEvaluator)
+    }
+
+    #[[ Move a ControlPoint along a line
+    #
+    #   The line is specified by the position of the two end-points.
+    #
+    #   Changing the distance between these the endpoints or the speed during
+    #   playback can cause jumps in ControlPoint position.
+    #
+    #   @speed      - The speed of the ControlPoint (metres per second)
+    #   @lineLength - The length of the line (metres)
+    #   @direction  - The direction of the line (unit vector)
+    #   @position   - The position of the centre of the line (metres)
+    #   @intensity - The intensity of the ControlPoint
+    #
+    #]]
+    line(speed:Num = 8,
+         lineLength:Num = 0.05,
+         direction:Vector3 = Vector3.right,
+         position:Vector3 = Vector3(0, 0, 0.2),
+         intensity:Num = 1
+         ):SensationEvaluator
+    {
+        endpointDisplacement = direction.scale(lineLength.mul(0.5))
+        endpointA = position.sub(endpointDisplacement)
+        endpointB = position.add(endpointDisplacement)
+
+        pathFunction = StandardPaths.line(endpointA, endpointB)
+
+        pingPongedPath = Path.pingPong(pathFunction)
+        pingPongedLength = lineLength.mul(2)
+        pathEvaluator = renderPathWithFixedSpeed(pingPongedPath, pingPongedLength, speed)
+        intensityEvaluator = constantIntensity(intensity)
+
+        controlPointEvaluator = renderControlPoint(pathEvaluator, intensityEvaluator)
+        return = renderSensation(controlPointEvaluator)
+    }
+
+    #[[ A dial consists of a ControlPoint moving slowly in a large circle, while quickly
+    #   moving in much smaller circles.
+    #
+    #   This can be thought of as a large circle slowly being traced by a brush, where the
+    #   brush is a ControlPoint moving quickly in a small circle.
+    #
+    #   The large circle and the small circle should have commensurate frequencies to prevent
+    #   jumps in ControlPoint position. This means that brushFrequency / dialFrequency should
+    #   be an integer.
+    #
+    #   Changing the dialFrequency or brushFrequency during playback can cause jumps in 
+    #   ControlPoint position.
+    #
+    #   @dialRadius     - The radius of the large circle (metres)
+    #   @dialFrequency  - The frequency of the large circle (seconds)
+    #   @brushRadius    - The radius of the small circle (metres)
+    #   @brushFrequency - The frequency of the small circle (seconds)
+    #   @position       - The centre of the dial (metres)
+    #   @rotation       - The rotation of the dial. If this is the indentity, the dial is in
+    #                     the x-y plane.
+    #   @intensity      - The intensity of the ControlPoint
+    #
+    #]]
+    dial(dialRadius:Num = 0.03, dialFrequency:Num = 1,
+         brushRadius:Num = 0.005, brushFrequency:Num = 100,
+         position:Vector3 = Vector3(0, 0, 0.2), rotation:Matrix3x3 = Matrix3x3.identity,
+         intensity:Num = 1
+         ):SensationEvaluator
+    {
+        largeCirclePath = StandardPaths.circle(dialRadius).reverse
+
+        smallCircleRepetitions = brushFrequency.div(dialFrequency)
+        smallCirclePath = StandardPaths.circle(brushRadius).repeat(smallCircleRepetitions)
+
+        # Add the two paths together
+        controlPointPath = largeCirclePath.add(smallCirclePath)
+
+        # Transform the path to the desired position and orientation
+        pathTransform = Transform.fromRotationAndTranslation(rotation, position)
+        positionedPath = controlPointPath.applyTransform(pathTransform)
+
+        pathEvaluator = renderPathWithFixedFrequency(positionedPath, dialFrequency)
+        controlPointEvaluator = renderControlPoint(pathEvaluator, constantIntensity(intensity))
+        return = renderSensation(controlPointEvaluator)
+    }
+
+    #[[ Move a ControlPoint in a Lissajous curve
+    #
+    #   A lissajous curve in the x-y plane defined by the eqns:
+    #       x(t) = 0.5 * curveSize.x * sin(frequencies.x * t)
+    #       y(t) = 0.5 * curveSize.y * sin(frequencies.y * t + phaseDelta) 
+    #
+    #   Changing the curveFrequencies or the pointFrequency during playback can cause jumps in
+    #   ControlPoint position.
+    #
+    #   @frequencies - The x and y frequencies of the Lissajous curve (Hertz)
+    #   @phaseShift  - The phase difference between x and y curves
+    #   @curveSize   - The extent of the Lissajous curve in the x and y directions (metres)
+    #   @position    - The centre of the Lissajous curve (metres)
+    #   @rotation    - The rotation of the Lissajous curve. If this is the identity, the curve
+    #                  is in the x-y plane.
+    #   @intensity   - The intensity of the ControlPoint.
+    #]]
+    lissajous(frequencies:Vector2 = Vector2(100, 200),
+              phaseShift:Num = Num.pi.div(2),
+              curveSize:Vector2 = Vector2(0.04, 0.04),
+              position:Vector3 = Vector3(0, 0, 0.2),
+              rotation:Matrix3x3 = Matrix3x3.identity,
+              intensity:Num = 1
+              ):SensationEvaluator
+    {
+        pathTransform = Transform.fromRotationAndTranslation(rotation, position)
+
+        pathEvaluator(time:TimeSpan):Vector3
+        {
+            xProgress = time.progress(1.div(frequencies.x))
+            yProgress = time.progress(1.div(frequencies.y))
+
+            xPos = curveSize.x.mul(0.5).mul(Num.sin(xProgress.mul(Num.tau)))
+            yPos = curveSize.y.mul(0.5).mul(Num.sin(yProgress.mul(Num.tau).add(phaseShift)))
+
+            evaluatedPosition = Vector3(xPos, yPos, 0)
+            transformedPosition = pathTransform.applyToPosition(evaluatedPosition)
+            return = transformedPosition
+        }
+
+        controlPointEvaluator = renderControlPoint(pathEvaluator, constantIntensity(intensity))
+        return = renderSensation(controlPointEvaluator)
+    }
+
+    #[[ Create a line which moves in a "hand-scan"-like path
+    #
+    #   The ControlPoint moves rapidly along a line in the x-axis, while more slowly oscillating
+    #   in the y-axis.
+    #
+    #   The lineFrequency should be divisible by the scanFrequency to prevent any ControlPoint
+    #   jumps.
+    #
+    #   Changing the scanLength, scanFrequency, lineLength or lineFrequency during playback can
+    #   cause jumps in the ControlPoint position.
+    #
+    #   @scanLength    - The length of the slower, y-axis scan (metres)
+    #   @scanFrequency - The frequency of the slower, y-axis scan (Hertz)
+    #   @lineLength    - The length of the rapid, x-axis scan line (metres)
+    #   @lineFrequency - The frequency of the rapid, x-axis scan line (Hertz)
+    #   @position      - The centre of the Sensation (metres)
+    #   @rotation      - The rotation of the Sensation. If this is the identity it is in the x-y
+    #                    plane
+    #   @intensity     - The intensity of the ControlPoint
+    #]]
+    scan(scanLength:Num = 0.125, 
+         scanFrequency:Num = 0.5, 
+         lineLength:Num = 0.05,
+         lineFrequency:Num = 100,
+         position:Vector3 = Vector3(0, 0, 0.2),
+         rotation:Matrix3x3 = Matrix3x3.identity,
+         intensity:Num = 1
+         ):SensationEvaluator
+    {
+        leftEndpoint = Vector3.left.scale(lineLength.half)
+        rightEndpoint = Vector3.right.scale(lineLength.half)
+
+        scanLinePath = StandardPaths.line(leftEndpoint, rightEndpoint).pingPong.repeat(lineFrequency.div(scanFrequency))
+
+        pathFrontEndpoint = Vector3.forward.scale(scanLength.half)
+        pathBackEndpoint = pathFrontEndpoint.negate
+
+        forwardPath = StandardPaths.line(pathBackEndpoint, pathFrontEndpoint).oscillate
+
+        pathTransform = Transform.fromRotationAndTranslation(rotation, position)
+        positionedScanPath = forwardPath.add(scanLinePath).applyTransform(pathTransform)
+
+        controlPointEvaluator = renderControlPoint(
+            renderPathWithFixedFrequency(positionedScanPath, scanFrequency),
+            constantIntensity(intensity))
+        return = renderSensation(controlPointEvaluator)
+    }
+
+    #[[ Create a circle which expands and contracts
+    #   
+    #   The ControlPoint speed is guaranteed to be constant. This is done by fixing the radial
+    #   speed, and using an equation for the angle which ensures the total speed is constant.
+    #
+    #   Note that there is a minimum valid speed for a given innerRadius,
+    #   outerRadius and period. The speed must be greater than
+    #       $ 2*(innerRadius-outerRadius)/period $
+    #
+    #   Changing the innerRadius, outerRadius, period, or speed during playback can
+    #   cause jumps in ControlPoint position.
+    #
+    #   @innerRadius     - The smallest radius the circle can be (metres)
+    #   @outerRadius     - The largest radius the circle can be (metres)
+    #   @expansionPeriod - The period of an expansion and closing of the circle (seconds)
+    #   @speed           - The speed of the ControlPoint (metres per second)
+    #   @position        - The position of the centre of the circle
+    #   @rotation        - The rotation of the circle. If this is the intentity, the circle is in
+    #                      the x-y plane.
+    #   @intensity       - The intensity of the ControlPoint
+    #
+    #   Derivation:
+    #       The equation for the velocity of a point in polar co-ordinates is:
+    #       $   v^2 = (v_r)^2 + r^2 w^2     $
+    #       where $w$ is the angular frequency, $v_r$ is the radial velocity and
+    #       $v$ is the total velocity.
+    #
+    #       Letting $v$ and $v_r$ be constant, we can rearrange this equation to give
+    #       $   d\theta/dt = sqrt(v^2 - v_r^2) / r      $
+    #       where we have used $w = d\theta/dt$, and taken the positive square root
+    #       to give an anti-clockwise path.
+    #
+    #       Noting that a fixed radial velocity $v_r$ gives
+    #       $   r(t) = r_min + v_r * t    $
+    #       we get
+    #       $   d\theta/dt = sqrt(v^2 - v_r^2) / (r_min + v_r * t)  $
+    #       which can be solved to give
+    #       $   \theta(t) = (1/v_r) * sqrt(v^2 - v_r^2) * ln(r_min + v_r * t) + constant  $
+    #       and we can find the constant of integration using that at $t=0$, $\theta=0$ and
+    #       $r = r_min$. This gives us the final equation that:
+    #
+    #       $   \theta(t) = sqrt( (v/v_r)^2 - 1 ) * ln(r(t)/r_min)    $
+    #
+    #       Which is true as $r$ increases from $r_min$ to $r_max$.
+    #       Since there is no guarantee that $\theta$ is a multiple of 2pi when $r$ gets to
+    #       $r_max$, we can instead ping-pong the path, so that the control-point travels in an
+    #       anti-clockwise circle as radius increases, and an clockwise circle as it decreases.
+    #
+    #]]
+    openCloseWithFixedSpeed(
+        innerRadius:Num = 0.01,
+        outerRadius:Num = 0.04,
+        expansionPeriod:Num = 1,
+        speed:Num = 8,
+        position:Vector3 = Vector3(0, 0, 0.2),
+        rotation:Matrix3x3 = Matrix3x3.identity,
+        intensity:Num = 1
+        ):SensationEvaluator
+    {
+        radialVelocity = outerRadius.sub(innerRadius).mul(2).div(expansionPeriod)
+        velocityRatio = speed.div(radialVelocity)
+
+        outwardSpiralPathFunc(u:Num):Vector3
+        {
+            pseudoRadialVelocity = outerRadius.sub(innerRadius)
+            radius = innerRadius.add(pseudoRadialVelocity.mul(u))
+
+            velocityRatioSquared = velocityRatio.mul(velocityRatio)
+            coefficient = Num.sqrt(velocityRatioSquared.sub(1))
+
+            logArgument = radius.div(innerRadius)
+            angle = coefficient.mul(Num.ln(logArgument))
+
+            return = Vector3(radius.mul(Num.cos(angle)), radius.mul(Num.sin(angle)),0)
+        }
+
+        outwardSpiralPath = Path(outwardSpiralPathFunc, Bounds(0, 1)).pingPong
+
+        pathTransform = Transform.fromRotationAndTranslation(rotation, position)
+        positionedPath = outwardSpiralPath.applyTransform(pathTransform)
+
+        evaluatePath = renderPathWithFixedPeriod(positionedPath, expansionPeriod)
+        controlPointEvaluator = renderControlPoint(evaluatePath, constantIntensity(intensity))
+        return = renderSensation(controlPointEvaluator)
+    }
+
+    #[[ Create a circle which expands and contracts
+    #
+    #   The frequency at which the ControlPoint travels in a circle is constant.
+    #
+    #   Changing the expansionPeriod or circleFrequency during playback can cause jumps in
+    #   ControlPoint position.
+    #
+    #   @innerRadius     - The smallest radius the circle can be (metres)
+    #   @outerRadius     - The largest radius the circle can be (metres)
+    #   @expansionPeriod - The period of an expansion and closing of the circle (seconds)
+    #   @circleFrequency - The frequency at which the ControlPoint moves about the circle (Hz)
+    #   @position        - The position of the centre of the circle
+    #   @rotation        - The rotation of the circle. If this is the intentity, the circle is in
+    #                      the x-y plane.
+    #   @intensity       - The intensity of the ControlPoint
+    #]]
+    openCloseWithFixedFrequency(
+        innerRadius:Num = 0.01,
+        outerRadius:Num = 0.04,
+        expansionPeriod:Num = 1,
+        circleFrequency:Num = 60,
+        position:Vector3 = Vector3(0, 0, 0.2),
+        rotation:Matrix3x3 = Matrix3x3.identity,
+        intensity:Num = 1
+        ):SensationEvaluator
+    {
+        unitCirclePath = StandardPaths.circle(1)
+        circleEvaluator = renderPathWithFixedFrequency(unitCirclePath, circleFrequency)
+
+        radiusEvaluator(time:TimeSpan):Num
+        {
+            u = time.progress(expansionPeriod)
+            u_pingPonged = if(u.lt(0.5), 2.mul(u), 1.sub(u).mul(2))
+            return = Num.lerp(u_pingPonged, innerRadius, outerRadius)
+        }
+
+        openCloseEvaluator(time:TimeSpan):Vector3
+        {
+            pathTransform = Transform.fromRotationAndTranslation(rotation, position)
+            currentPosition = circleEvaluator(time).scale(radiusEvaluator(time))
+            return = pathTransform.applyToPosition(currentPosition)
+        }
+
+        controlPointEvaluator = renderControlPoint(openCloseEvaluator, constantIntensity(intensity))
+        return = renderSensation(controlPointEvaluator)
+    }
+
+    #[[ A rotor is a ping-ponged line which rotates at a constant angular frequency
+    #
+    #   We guarantee the ControlPoint speed to be constant, by calculating an equation
+    #   for the radial position as a function of time.
+    #
+    #   Changing the radius, period, or speed during playback can cause jumps in the
+    #   ControlPoint position.
+    #
+    #   @radius    - The maximum distance the ControlPoint moves from the centre (metres)
+    #   @period    - The period at which the line rotates (seconds)
+    #   @speed     - The speed of the ControlPoint (metres per second)
+    #   @position  - The centre of the circle (metres)
+    #   @rotation  - The rotation of the rotor. If this is the identity, then the rotor is in the
+    #                x-y plane.
+    #   @intensity - The intensity of the ControlPoint
+    #
+    #   Derivation:
+    #       The equation for the velocity of a point in polar co-ordinates is:
+    #       $   v^2 = (dr/dt)^2 + r^2 w^2     $
+    #       where $w$ is the angular frequency and $v$ is the total velocity.
+    #
+    #       We know $v$ and $w$, and we want to calculate $r(t)$ such that the
+    #       $v$ is a constant. Rearranging this equation gives us
+    #       $   dr / sqrt( 1 - (wr/v)^2 ) = v dt    $
+    #       which is solved by
+    #       $   r(t) = (v/w) asin(w*t)    $
+    #
+    #       Suppose at $t=0$, $r=0$. $r$ increases with time until $r(T)=R$, where
+    #       $R$ is the radius of the rotor, and $T$ is the time at which the ControlPoint
+    #       is at this position.
+    #
+    #       This gives
+    #       $   T = (1/w) asin(w*R/v)   $
+    #       
+    #       We can then say that $r(t)$ is equal to equation above while $t <= T$, and then
+    #       ping-pong the radial path when $t>T$, so that the radius goes back.
+    #
+    #       This means that in general the radius evolves at a frequency which is
+    #       incommensurate with the circle frequency.
+    #
+    #]]
+    rotorWithFixedSpeed(
+        radius:Num = 0.04,
+        period:Num = 0.5,
+        speed:Num = 8,
+        position:Vector3 = Vector3(0, 0, 0.2),
+        rotation:Matrix3x3 = Matrix3x3.identity,
+        intensity:Num = 1
+        ):SensationEvaluator
+    {
+        unitCirclePath = StandardPaths.circle(1)
+
+        # Multiply the period of the circle by 2, so that we only get the path of a semi-circle.
+        # This is because the radius of the rotor goes negative, so we only want half the circle.
+        circleEvaluator = renderPathWithFixedPeriod(unitCirclePath, period.mul(2))
+
+        # The radius evolves at a frequency which is incommensurate with the circle frequency,
+        # so we have to write a separate evaluator and combine evaluators, instead of performing
+        # the operations on the paths.
+        radiusEvaluator(time:TimeSpan):Num
+        {
+            angularFrequency = Num.tau.div(period)
+            t_max = Num.asin(angularFrequency.mul(radius).div(speed)).div(angularFrequency)
+
+            radiusPeriod = 2.mul(t_max)
+            u = time.progress(radiusPeriod)
+            u_pingPonged = if(u.lt(0.5), 2.mul(u), 1.sub(u).mul(2))
+
+            absRadius = Num.sin(angularFrequency.mul(u_pingPonged).mul(t_max)).mul(speed).div(angularFrequency)
+
+            radiusSign = -1.pow(time.cycles(radiusPeriod))
+            return = radiusSign.mul(absRadius)
+        }
+
+        rotorEvaluator(time:TimeSpan):Vector3
+        {
+            pathTransform = Transform.fromRotationAndTranslation(rotation, position)
+            currentPosition = circleEvaluator(time).scale(radiusEvaluator(time))
+            return = pathTransform.applyToPosition(currentPosition)
+        }
+
+        controlPointEvaluator = renderControlPoint(rotorEvaluator, constantIntensity(intensity))
+        return = renderSensation(controlPointEvaluator)
+    }
+
+    #[[ A rotor is a ping-ponged line which rotates at a constant angular frequency
+    #
+    #   This Sensation keeps the frequency at which the ControlPoint moves along the line constant.
+    #   This means that the absolute speed of the ControlPoint can vary. However in practice,
+    #   the ControlPoint speed is approximately constant, with the lowest-order corrections
+    #   proportional to $(rotorFrequency / lineFrequency)^2$.
+    #
+    #   Changing the period or lineFrequency during playback can cause jumps in the
+    #   ControlPoint position.
+    #
+    #   @radius         - The maximum distance the ControlPoint moves from the centre (metres)
+    #   @period         - The period at which the line rotates (seconds)
+    #   @lineFrequency  - The frequency at which the ControlPoint moves along the line
+    #   @position       - The centre of the circle (metres)
+    #   @rotation       - The rotation of the rotor. If this is the identity, then the rotor is in
+    #                     the x-y plane.
+    #   @intensity      - The intensity of the ControlPoint
+    #
+    #]]
+    rotorWithFixedFrequency(
+        radius:Num = 0.04,
+        period:Num = 0.5,
+        lineFrequency:Num = 80,
+        position:Vector3 = Vector3(0, 0, 0.2),
+        rotation:Matrix3x3 = Matrix3x3.identity,
+        intensity:Num = 1
+        ):SensationEvaluator
+    {
+        unitCirclePath = StandardPaths.circle(1)
+
+        # Multiply the period of the circle by 2, so that we only get the path of a semi-circle.
+        # This is because the radius of the rotor goes negative, so we only want half the circle.
+        circleEvaluator = renderPathWithFixedPeriod(unitCirclePath, period.mul(2))
+
+        radiusEvaluator(time:TimeSpan):Num
+        {
+            u = time.progress(1.div(lineFrequency))
+            u_pingPonged = if(u.lt(0.5), 2.mul(u), 1.sub(u).mul(2))
+            return = Num.lerp(u_pingPonged, radius, radius.mul(-1))
+        }
+
+        rotorEvaluator(time:TimeSpan):Vector3
+        {
+            pathTransform = Transform.fromRotationAndTranslation(rotation, position)
+            currentPosition = circleEvaluator(time).scale(radiusEvaluator(time))
+            return = pathTransform.applyToPosition(currentPosition)
+        }
+
+        controlPointEvaluator = renderControlPoint(rotorEvaluator, constantIntensity(intensity))
+        return = renderSensation(controlPointEvaluator)
+    }
+
+    #[[ Play circles randomly centred in different places in a rectangle
+    #
+    #   @zoneWidth      - The width of the zone in which circles can be created (metres)
+    #   @zoneLength     - The length of the zone in which circles can be created (metres)
+    #   @jumpFrequency  - The frequency at which the circle jumps (Hertz)
+    #   @circleRadius   - The radius of the circle (metres)
+    #   @circleSpeed    - The speed at which the ControlPoint moves around the circle
+    #                     (metres persecond)
+    #   @position       - The position of the centre of the zone in which circles can be created
+    #                     (metres)
+    #   @rotation       - The rotation of the plane in which circles can be created. If this is the
+    #                     identity, circles are created in the x-y plane.
+    #]]
+    ripple(
+        zoneWidth:Num = 0.1,
+        zoneLength:Num = 0.1,
+        jumpFrequency:Num = 10,
+        circleRadius:Num = 0.02,
+        circleSpeed:Num = 8,
+        position:Vector3 = Vector3(0, 0, 0.2),
+        rotation:Matrix3x3 = Matrix3x3.identity,
+        intensity:Num = 1
+        ):SensationEvaluator
+    {
+        centreEvaluator(time:TimeSpan):Vector3
+        {
+            elapsedPositionJumps = time.cycles(1.div(jumpFrequency))
+    
+            # Look up pairs of random numbers from the Random look-up table, to determine where the
+            # circle should be positioned in the ripple-zone.
+            xIndex = elapsedPositionJumps.mul(2).rem(Random.lookupTable.count)
+            yIndex = elapsedPositionJumps.mul(2).add(1).rem(Random.lookupTable.count)
+            xCentre = Random.lookupTable.at(xIndex).sub(0.5).mul(zoneWidth)
+            yCentre = Random.lookupTable.at(yIndex).sub(0.5).mul(zoneLength)
+            zCentre = 0
+
+            return = Vector3(xCentre, yCentre, zCentre)
+        }
+
+        circleEvaluator = renderPathWithFixedSpeed(StandardPaths.circle(circleRadius), StandardPaths.circleLength(circleRadius), circleSpeed)
+
+        rippleEvaluator(time:TimeSpan):Vector3
+        {
+            centrePosition = centreEvaluator(time)
+            offsetFromCentre = circleEvaluator(time)
+
+            ripplePosition = centrePosition.add(offsetFromCentre)
+
+            # Apply the Transform specified by the inputs
+            inputTransform = Transform.fromRotationAndTranslation(rotation, position)
+            return = inputTransform.applyToPosition(ripplePosition)
+        }
+
+        intensityEvaluator = modulatedIntensity(intensity, jumpFrequency, 0)
+
+        controlPointEvaluator = renderControlPoint(rippleEvaluator, intensityEvaluator)
+        return = renderSensation(controlPointEvaluator)
+    }
+
+    #[[ Fix a ControlPoint in space and modulate the intensity
+    #
+    #   Uses Amplitude Modulation to create a localised sensation
+    #
+    #   @position - The position of the ControlPoint (metres)
+    #   @frequency - The frequency at which the amplitude is modulated (Hertz)
+    #   @maxIntensity  - The peak ControlPoint intensity during amplitude modulation
+    #
+    #]]
+    amplitudeModulatedPoint(
+        position:Vector3 = Vector3(0, 0, 0.2),
+        frequency:Num = 100,
+        maxIntensity:Num = 1):SensationEvaluator
+    {
+        positionEvaluator(_:TimeSpan):Vector3 = position
+        intensityEvaluator = modulatedIntensity(maxIntensity, frequency, 0)
+        controlPointEvaluator = renderControlPoint(positionEvaluator, intensityEvaluator)
+        return = renderSensation(controlPointEvaluator)
+    }
+}

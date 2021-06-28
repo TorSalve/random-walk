@@ -1,0 +1,80 @@
+# An API for Simple Hands
+#
+# NOTE: This is very likely to change.
+#
+
+#[[ Simple Digits
+#
+#   These describe a single digit in the hand, and store joint positions.
+#
+#   Aside from the tip, the joints are named after the bone they are attached
+#   to which is furthest from the wrist.
+#
+#   This struct is likely to change.
+#]]
+struct SimpleDigit(
+    metacarpal:Vector3,
+    proximal:Vector3,
+    intermediate:Vector3,
+    distal:Vector3,
+    tip:Vector3
+    )
+{
+    joints(this:SimpleDigit):List = list(this.metacarpal, this.proximal, this.intermediate, this.distal, this.tip)
+}
+
+#[[ Simple Hand
+#
+#   The SimpleHand just contains SimpleDigits and contains a few useful helpers.
+#
+#   This stores the thumb in the same way as it stores fingers - despite thumbs
+#   having one fewer bone. To make up for this, we store a zero-length metacarpal.
+#
+#   @isValid    - True if the hand contains valid data
+#   @isRight    - True if the hand is the right hand, otherwise false.
+#   @position   - The position of the centre of the palm. This should be the midpoint
+#                 of the middle finger metacarpal bone.
+#   @direction  - The direction the hand is pointing in, from the palm to the fingers
+#   @normal     - The direction normal to the palm. Pointing out of the palm.
+#
+#]]
+struct SimpleHand(
+    isValid:Bool,
+    isRight:Bool,
+    position:Vector3,
+    direction:Vector3,
+    normal:Vector3,
+    thumb:SimpleDigit,
+    index:SimpleDigit,
+    middle:SimpleDigit,
+    ring:SimpleDigit,
+    pinky:SimpleDigit
+)
+{
+    #[[ The digits of the hand, from thumb to pinky ]]
+    digits(this:SimpleHand):List = list(this.thumb, this.index, this.middle, this.ring, this.pinky)
+
+    #[[ The rotation matrix of the hand
+    #
+    #   The rotation does nothing if the hand is flat with the palm towards the array.
+    #   The new basis is defined as:
+    #       z = -1 * hand.normal
+    #       y = hand.direction
+    #       x = hand.normal cross hand.direction
+    #]]
+    palmRotation(this:SimpleHand):Matrix3x3
+    {
+        return = Matrix3x3.fromCols(
+            this.normal.cross(this.direction),
+            this.direction,
+            this.normal.scale(-1)
+        )
+    }
+
+    palmPosition(this:SimpleHand):Vector3 = this.position
+
+    palmTransform(this:SimpleHand):Transform
+    {
+        return = Transform.fromRotationAndTranslation(this.palmRotation, this.position)
+    }
+}

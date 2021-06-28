@@ -1,0 +1,505 @@
+#[[ Hand-Tracked Sensations
+#
+#   These are hand-tracked versions of StandardSensations
+#]]
+namespace HandSensations
+{
+    #[[ Move a ControlPoint in a circle on the palm of the hand
+    #
+    #   Move the point with a fixed speed.
+    #
+    #   Changing radius or speed during playback can cause jumps in ControlPoint position.
+    #
+    #   @hand      - The hand to project the circle on
+    #   @radius    - The radius of the circle (metres)
+    #   @speed     - The speed of the ControlPoint (metres per second)
+    #   @intensity - The intensity of the ControlPoint
+    #]]
+    circleWithFixedSpeed(
+        hand:SimpleHand = TestHands.invalid,
+        radius:Num = 0.02,
+        speed:Num = 8,
+        intensity:Num = 1):SensationEvaluator
+    {
+        palmPosition = hand.palmPosition
+        palmRotation = hand.palmRotation
+        sensation = StandardSensations.circleWithFixedSpeed(
+            radius, palmPosition, palmRotation, speed, intensity)
+        return = enableSensation(hand.isValid, sensation)
+    }
+
+    #[[ Move a ControlPoint in a circle on the palm of the hand
+    #
+    #   Move the point with a fixed angular frequency.
+    #
+    #   Changing frequency during playback can cause jumps in ControlPoint position.
+    #
+    #   @hand      - The hand to project the circle onto
+    #   @radius    - The radius of the circle (metres)
+    #   @frequency - The frequency at which the ControlPoint moves around the circle (Hz)
+    #   @intensity - The intensity of the Control Point
+    #]]
+    circleWithFixedFrequency(
+        hand:SimpleHand = TestHands.invalid,
+        radius:Num = 0.02,
+        frequency:Num = 64,
+        intensity:Num = 1):SensationEvaluator
+    {
+        palmPosition = hand.palmPosition
+        palmRotation = hand.palmRotation
+        sensation = StandardSensations.circleWithFixedFrequency(
+            radius, palmPosition, palmRotation, frequency, intensity)
+        return = enableSensation(hand.isValid, sensation)
+    }
+
+    #[[ A dial consists of a ControlPoint moving slowly in a large circle, while quickly
+    #   moving in much smaller circles.
+    #
+    #   This can be thought of as a large circle slowly being traced by a brush, where the
+    #   brush is a ControlPoint moving quickly in a small circle.
+    #
+    #   The large circle and the small circle should have commensurate frequencies to prevent
+    #   jumps in ControlPoint position. This means that brushFrequency / dialFrequency should
+    #   be an integer.
+    #
+    #   Changing the dialFrequency or brushFrequency during playback can cause jumps in 
+    #   ControlPoint position.
+    #
+    #   @hand              - The hand to project the dial onto
+    #   @dialRadius     - The radius of the large circle (metres)
+    #   @dialFrequency  - The frequency of the large circle (seconds)
+    #   @brushRadius    - The radius of the small circle (metres)
+    #   @brushFrequency - The frequency of the small circle (seconds)
+    #   @intensity      - The intensity of the ControlPoint
+    #]]
+    dial(hand:SimpleHand = TestHands.invalid,
+         dialRadius:Num = 0.03, dialFrequency:Num = 1,
+         brushRadius:Num = 0.005, brushFrequency:Num = 100,
+         intensity:Num = 1):SensationEvaluator
+    {
+        palmPosition = hand.palmPosition
+        palmRotation = hand.palmRotation
+        sensation = StandardSensations.dial(
+            dialRadius, dialFrequency, brushRadius, brushFrequency,
+            palmPosition, palmRotation, intensity)
+        return = enableSensation(hand.isValid, sensation)
+    }
+
+    #[[ Move a ControlPoint in a Lissajous curve
+    #
+    #   A lissajous curve in the x-y plane defined by the eqns:
+    #       x(t) = 0.5 * curveSize.x * sin(frequencies.x * t)
+    #       y(t) = 0.5 * curveSize.y * sin(frequencies.y * t + phaseDelta) 
+    #
+    #   Changing the curveFrequencies or the pointFrequency during playback can cause jumps in
+    #   ControlPoint position.
+    #
+    #   @hand             - The hand to project the curve onto
+    #   @frequencies - The x and y frequencies of the Lissajous curve (Hertz)
+    #   @phaseShift  - The phase difference between x and y curves
+    #   @curveSize   - The extent of the Lissajous curve in the x and y directions (metres)
+    #   @intensity   - The intensity of the ControlPoint.
+    #]]
+    lissajous(hand:SimpleHand = TestHands.invalid,
+              frequencies:Vector2 = Vector2(100, 200),
+              phaseShift:Num = Num.pi.div(2),
+              curveSize:Vector2 = Vector2(0.04, 0.04),
+              intensity:Num = 1
+              ):SensationEvaluator
+    {
+        palmPosition = hand.palmPosition
+        palmRotation = hand.palmRotation
+        sensation = StandardSensations.lissajous(
+            frequencies, phaseShift, curveSize, palmPosition, palmRotation, intensity
+        )
+        return = enableSensation(hand.isValid, sensation)
+    }
+
+    #[[ Create a line which moves in a "hand-scan"-like path
+    #
+    #   The ControlPoint moves rapidly along a line in the x-axis, while more slowly oscillating
+    #   in the y-axis.
+    #
+    #   The ControlPoint moves rapidly along a line in the x-axis, while more slowly oscillating
+    #   in the y-axis.
+    #
+    #   The lineFrequency should be divisible by the scanFrequency to prevent any ControlPoint
+    #   jumps.
+    #
+    #   Changing the scanLength, scanFrequency, lineLength or lineFrequency during playback can
+    #   cause jumps in the ControlPoint position.
+    #
+    #   @hand          - The hand to project the sensation onto
+    #   @scanLength    - The length of the slower, y-axis scan (metres)
+    #   @scanFrequency - The frequency of the slower, y-axis scan (Hertz)
+    #   @lineLength    - The length of the rapid, x-axis scan line (metres)
+    #   @lineFrequency - The frequency of the rapid, x-axis scan line (Hertz)
+    #   @position      - The centre of the Sensation (metres)
+    #   @rotation      - The rotation of the Sensation. If this is the identity it is in the x-y
+    #                    plane
+    #   @intensity     - The intensity of the ControlPoint
+    #]]
+    scan(hand:SimpleHand = TestHands.invalid,
+         scanLength:Num = 0.125, 
+         scanFrequency:Num = 0.5, 
+         lineLength:Num = 0.05,
+         lineFrequency:Num = 100,
+         intensity:Num = 1
+         ):SensationEvaluator
+    {
+        palmPosition = hand.palmPosition
+        palmRotation = hand.palmRotation
+        
+        sensation = StandardSensations.scan(
+            scanLength, scanFrequency, lineLength, lineFrequency, palmPosition, palmRotation, intensity
+        )
+        return = enableSensation(hand.isValid, sensation)
+    }
+
+    #[[ Create a circle which expands and contracts
+    #   
+    #   The ControlPoint speed is guaranteed to be constant. This is done by fixing the radial
+    #   speed, and using an equation for the angle which ensures the total speed is constant.
+    #
+    #   Note that there is a minimum valid speed for a given innerRadius,
+    #   outerRadius and period. The speed must be greater than
+    #       $ 2*(innerRadius-outerRadius)/period $
+    #
+    #   Changing the innerRadius, outerRadius, period, or speed during playback can
+    #   cause jumps in ControlPoint position.
+    #
+    #   @innerRadius     - The smallest radius the circle can be (metres)
+    #   @outerRadius     - The largest radius the circle can be (metres)
+    #   @expansionPeriod - The period of an expansion and closing of the circle (seconds)
+    #   @speed           - The speed of the ControlPoint
+    #   @position        - The position of the centre of the circle
+    #   @rotation        - The rotation of the circle. If this is the intentity, the circle is in
+    #                      the x-y plane.
+    #   @intensity   - The intensity of the ControlPoint
+    #]]
+    openCloseWithFixedSpeed(
+        hand:SimpleHand = TestHands.invalid,
+        innerRadius:Num = 0.01,
+        outerRadius:Num = 0.04,
+        expansionPeriod:Num = 1,
+        speed:Num = 8,
+        intensity:Num = 1
+        ):SensationEvaluator
+    {
+        palmPosition = hand.palmPosition
+        palmRotation = hand.palmRotation
+        sensation = StandardSensations.openCloseWithFixedSpeed(
+            innerRadius, outerRadius, expansionPeriod, speed,
+            palmPosition, palmRotation, intensity
+        )
+        return = enableSensation(hand.isValid, sensation)
+    }
+
+    #[[ Create a circle which expands and contracts
+    #
+    #   The frequency at which the ControlPoint travels in a circle is constant.
+    #
+    #   Changing the expansionPeriod or circleFrequency during playback can cause jumps in
+    #   ControlPoint position.
+    #
+    #   @innerRadius     - The smallest radius the circle can be (metres)
+    #   @outerRadius     - The largest radius the circle can be (metres)
+    #   @expansionPeriod - The period of an expansion and closing of the circle (seconds)
+    #   @circleFrequency - The frequency at which the ControlPoint moves about the circle (Hz)
+    #   @position        - The position of the centre of the circle
+    #   @rotation        - The rotation of the circle. If this is the intentity, the circle is in
+    #                      the x-y plane.
+    #   @intensity       - The intensity of the ControlPoint
+    #]]
+    openCloseWithFixedFrequency(
+        hand:SimpleHand = TestHands.invalid,
+        innerRadius:Num = 0.01,
+        outerRadius:Num = 0.04,
+        expansionPeriod:Num = 1,
+        circleFrequency:Num = 60,
+        intensity:Num = 1
+        ):SensationEvaluator
+    {
+        palmPosition = hand.palmPosition
+        palmRotation = hand.palmRotation
+        sensation = StandardSensations.openCloseWithFixedFrequency(
+            innerRadius, outerRadius, expansionPeriod, circleFrequency,
+            palmPosition, palmRotation, intensity
+        )
+        return = enableSensation(hand.isValid, sensation)
+    }
+
+    #[[ A rotor is a ping-ponged line which rotates at a constant angular frequency
+    #
+    #   We guarantee the ControlPoint speed to be constant, by calculating an equation
+    #   for the radial position as a function of time.
+    #
+    #   Changing the radius, period, or speed during playback can cause jumps in the
+    #   ControlPoint position.
+    #
+    #   @radius    - The maximum distance the ControlPoint moves from the centre (metres)
+    #   @period    - The period at which the line rotates (seconds)
+    #   @speed     - The speed of the ControlPoint (metres per second)
+    #   @position  - The centre of the circle (metres)
+    #   @rotation  - The rotation of the rotor. If this is the identity, then the rotor is in the
+    #                x-y plane.
+    #   @intensity - The intensity of the ControlPoint
+    #]]
+    rotorWithFixedSpeed(hand:SimpleHand = TestHands.invalid,
+          radius:Num = 0.04,
+          period:Num = 0.5,
+          speed:Num = 8,
+          intensity:Num = 1
+          ):SensationEvaluator
+    {
+        palmPosition = hand.palmPosition
+        palmRotation = hand.palmRotation
+        sensation = StandardSensations.rotorWithFixedSpeed(
+            radius, period, speed,
+            palmPosition, palmRotation, intensity
+        )
+        return = enableSensation(hand.isValid, sensation)
+    }
+
+    #[[ A rotor is a ping-ponged line which rotates at a constant angular frequency
+    #
+    #   This Sensation keeps the frequency at which the ControlPoint moves along the line constant.
+    #   This means that the absolute speed of the ControlPoint can vary. However in practice,
+    #   the ControlPoint speed is approximately constant, with the lowest-order corrections
+    #   proportional to $(rotorFrequency / lineFrequency)^2$.
+    #
+    #   Changing the period or lineFrequency during playback can cause jumps in the
+    #   ControlPoint position.
+    #
+    #   @radius         - The maximum distance the ControlPoint moves from the centre (metres)
+    #   @period         - The period at which the line rotates (seconds)
+    #   @lineFrequency  - The speed of the ControlPoint (metres per second)
+    #   @position       - The centre of the circle (metres)
+    #   @rotation       - The rotation of the rotor. If this is the identity, then the rotor is in
+    #                     the x-y plane.
+    #   @intensity      - The intensity of the ControlPoint
+    #]]
+    rotorWithFixedFrequency(
+        hand:SimpleHand = TestHands.invalid,
+        radius:Num = 0.04,
+        period:Num = 0.5,
+        lineFrequency:Num = 80,
+        intensity:Num = 1
+        ):SensationEvaluator
+    {
+        palmPosition = hand.palmPosition
+        palmRotation = hand.palmRotation
+        sensation = StandardSensations.rotorWithFixedFrequency(
+            radius, period, lineFrequency,
+            palmPosition, palmRotation, intensity
+        )
+        return = enableSensation(hand.isValid, sensation)
+    }
+
+    #[[ The lightning sensation draws lines across random fingers
+    #
+    #   The thumb may also be chosen.
+    #
+    #   @fingerFrequency   - The frequency at which the targetted finger is swapped.
+    #   @drawFrequency     - The frequency at which the ControlPoint moves along the targetted
+    #                        finger. This should be a multiple of the fingerFrequency to avoid
+    #                        any jumps in ControlPoint position.
+    #   @intensity         - The ControlPoint intensity
+    #]]
+    lightning(
+        hand:SimpleHand = TestHands.invalid,
+        fingerFrequency:Num = 20,
+        drawFrequency:Num = 100,
+        intensity:Num = 1
+        ):SensationEvaluator
+    {
+        digitChooser(time:TimeSpan):SimpleDigit
+        {
+            numberOfElapsedCycles = time.cycles(1.div(fingerFrequency))
+
+            # Look up a random number from the look-up table
+            randomNumber = Random.lookupTable.at(numberOfElapsedCycles.rem(Random.lookupTable.count))
+
+            correspondingDigitIndex = randomNumber.mul(5).floor
+            correspondingDigit = hand.digits.at(correspondingDigitIndex)
+            return = correspondingDigit
+        }
+
+        pathEvaluator(time:TimeSpan):Vector3
+        {
+            relevantDigit = digitChooser(time)
+            wristToProximal = StandardPaths.line(hand.middle.metacarpal, relevantDigit.proximal)
+            proximalToTip = StandardPaths.line(relevantDigit.proximal, relevantDigit.tip)
+            path = Path.concatByLengthRatio(wristToProximal, proximalToTip, 1).pingPong
+
+            return = path.at(time.progress(1.div(drawFrequency)))
+        }
+
+        controlPointEvaluator = renderControlPoint(pathEvaluator, constantIntensity(intensity))
+        return = renderSensation(controlPointEvaluator)
+    }
+
+    #[[ Play circles randomly centred in different places in a rectangle
+    #
+    #   @zoneWidth      - The width of the zone in which circles can be created
+    #   @zoneLength     - The length of the zone in which circles can be created
+    #   @jumpFrequency  - The frequency at which the circle jumps
+    #   @circleRadius   - The radius of the circle
+    #   @circleSpeed    - The speed at which the ControlPoint moves around the circle
+    #]]
+    ripple(
+        hand:SimpleHand = TestHands.invalid,
+        zoneWidth:Num = 0.1,
+        zoneLength:Num = 0.1,
+        jumpFrequency:Num = 10,
+        circleRadius:Num = 0.02,
+        circleSpeed:Num = 8,
+        intensity:Num = 1
+        ):SensationEvaluator
+    {
+        palmPosition = hand.palmPosition
+        palmRotation = hand.palmRotation
+        sensation = StandardSensations.ripple(
+            zoneWidth, zoneLength, jumpFrequency, circleRadius, circleSpeed,
+            palmPosition, palmRotation, intensity
+        )
+        return = enableSensation(hand.isValid, sensation)
+    }
+
+    #[[ Fix a ControlPoint in space and modulate the intensity
+    #
+    #   Uses Amplitude Modulation to create a localised sensation
+    #
+    #   @position - The position of the ControlPoint (metres)
+    #   @frequency - The frequency at which the amplitude is modulated (Hertz)
+    #   @maxIntensity  - The peak ControlPoint intensity during amplitude modulation
+    #
+    #]]
+    amplitudeModulatedPoint(
+        hand:SimpleHand = TestHands.invalid,
+        frequency:Num = 100,
+        maxIntensity:Num = 1):SensationEvaluator
+    {
+        palmPosition = hand.palmPosition
+        positionEvaluator(_:TimeSpan):Vector3 = palmPosition
+        intensityEvaluator = modulatedIntensity(maxIntensity, frequency, 0)
+        controlPointEvaluator = renderControlPoint(positionEvaluator, intensityEvaluator)
+        return = renderSensation(controlPointEvaluator)
+    }
+
+    #[[ Create a line which moves in a "hand-scan"-like path
+    #
+    #   The ControlPoint moves rapidly along a line in the x-axis, while more slowly oscillating
+    #   in the y-axis.
+    #
+    #   The ControlPoint moves rapidly along a line in the x-axis, while more slowly oscillating
+    #   in the y-axis.
+    #
+    #   The lineFrequency should be divisible by the scanFrequency to prevent any ControlPoint
+    #   jumps.
+    #
+    #   Changing the scanLength, scanFrequency, lineLength or lineFrequency during playback can
+    #   cause jumps in the ControlPoint position.
+    #
+    #   @hand          - The hand to project the sensation onto
+    #   @scanLength    - The length of the slower, y-axis scan (metres)
+    #   @scanFrequency - The frequency of the slower, y-axis scan (Hertz)
+    #   @lineLength    - The length of the rapid, x-axis scan line (metres)
+    #   @lineFrequency - The frequency of the rapid, x-axis scan line (Hertz)
+    #   @position      - The centre of the Sensation (metres)
+    #   @rotation      - The rotation of the Sensation. If this is the identity it is in the x-y
+    #                    plane
+    #   @intensity     - The intensity of the ControlPoint
+    #]]
+    brush(hand:SimpleHand = TestHands.invalid,
+         scanLength:Num = 0.125, 
+         scanFrequency:Num = 0.5, 
+         lineLength:Num = 0.05,
+         lineFrequency:Num = 100,
+         intensity:Num = 1
+         ):SensationEvaluator
+    {
+        palmPosition = hand.palmPosition
+        palmRotation = hand.palmRotation
+        
+        leftEndpoint = Vector3.left.scale(lineLength.half)
+        rightEndpoint = Vector3.right.scale(lineLength.half)
+
+        scanLinePath = StandardPaths.line(leftEndpoint, rightEndpoint).pingPong.repeat(lineFrequency.div(scanFrequency))
+
+        pathFrontEndpoint = Vector3.forward.scale(scanLength.half)
+        pathBackEndpoint = pathFrontEndpoint.negate
+
+        forwardPath = StandardPaths.line(pathBackEndpoint, pathFrontEndpoint)
+
+        pathTransform = Transform.fromRotationAndTranslation(palmRotation, palmPosition)
+        positionedScanPath = forwardPath.add(scanLinePath).applyTransform(pathTransform)
+
+        controlPointEvaluator = renderControlPoint(
+            renderPathWithFixedFrequency(positionedScanPath, scanFrequency),
+            constantIntensity(intensity))
+        sensation = renderSensation(controlPointEvaluator)
+
+        return = enableSensation(hand.isValid, sensation)
+    }
+
+    #[[ Create a line which moves in a "hand-scan"-like path
+    #
+    #   The ControlPoint moves rapidly along a line in the x-axis, while more slowly oscillating
+    #   in the y-axis.
+    #
+    #   The ControlPoint moves rapidly along a line in the x-axis, while more slowly oscillating
+    #   in the y-axis.
+    #
+    #   The lineFrequency should be divisible by the scanFrequency to prevent any ControlPoint
+    #   jumps.
+    #
+    #   Changing the scanLength, scanFrequency, lineLength or lineFrequency during playback can
+    #   cause jumps in the ControlPoint position.
+    #
+    #   @hand          - The hand to project the sensation onto
+    #   @scanLength    - The length of the slower, y-axis scan (metres)
+    #   @scanFrequency - The frequency of the slower, y-axis scan (Hertz)
+    #   @lineLength    - The length of the rapid, x-axis scan line (metres)
+    #   @lineFrequency - The frequency of the rapid, x-axis scan line (Hertz)
+    #   @position      - The centre of the Sensation (metres)
+    #   @rotation      - The rotation of the Sensation. If this is the identity it is in the x-y
+    #                    plane
+    #   @intensity     - The intensity of the ControlPoint
+    #]]
+    large(hand:SimpleHand = TestHands.invalid,
+         scanLength:Num = 0.125, 
+         scanFrequency:Num = 0.5, 
+         lineLength:Num = 0.05,
+         lineFrequency:Num = 100,
+         intensity:Num = 1,
+         frequency:Num = 100
+         ):SensationEvaluator
+    {
+        palmPosition = hand.palmPosition
+        palmRotation = hand.palmRotation
+        
+        leftEndpoint = Vector3.left.scale(lineLength.half)
+        rightEndpoint = Vector3.right.scale(lineLength.half)
+
+        scanLinePath = StandardPaths.line(leftEndpoint, rightEndpoint).pingPong.repeat(lineFrequency.div(scanFrequency))
+
+        pathFrontEndpoint = Vector3.forward.scale(scanLength.half)
+        pathBackEndpoint = pathFrontEndpoint.negate
+
+        forwardPath = StandardPaths.line(pathBackEndpoint, pathFrontEndpoint)
+
+        pathTransform = Transform.fromRotationAndTranslation(palmRotation, palmPosition)
+        positionedScanPath = forwardPath.add(scanLinePath).applyTransform(pathTransform)
+
+        intensityEvaluator = modulatedIntensity(intensity, frequency, 0)
+        #intensityEvaluator = constantIntensity(intensity)
+
+        controlPointEvaluator = renderControlPoint(
+            renderPathWithFixedFrequency(positionedScanPath, scanFrequency),
+            intensityEvaluator)
+        sensation = renderSensation(controlPointEvaluator)
+
+        return = enableSensation(hand.isValid, sensation)
+    }
+}

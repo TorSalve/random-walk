@@ -1,0 +1,96 @@
+#[[ Standard Paths are pre-defined Paths. They all have the domain (0, 1).
+#
+#   If the path length is possible to calculate analytically, a separate
+#   function is defined to provide it. Note that applying transforms
+#   to these paths may change the path length.
+#]]
+namespace StandardPaths
+{
+    #[[ An anti-clockwise circle in the x-y plane, beginning at
+    #   x=radius, y=0
+    #]]
+    circle(radius:Num):Path
+    {
+        circleFunction(u:Num):Vector3
+        {
+            x = radius.mul(Num.cos(u.mul(Num.tau)))
+            y = radius.mul(Num.sin(u.mul(Num.tau)))
+            return = Vector3(x, y, 0)
+        }
+        return = Path(circleFunction, Bounds(0, 1))
+    }
+    circleLength(radius:Num):Num = Num.tau.mul(radius)
+
+    #[[ A straight line from point 'a' to point 'b' ]]
+    line(a:Vector3, b:Vector3):Path
+    {
+        lineFunction(u:Num):Vector3 = Vector3.lerp(u, a, b)
+        return = Path(lineFunction, Bounds(0, 1))
+    }
+    lineLength(a:Vector3, b:Vector3):Num = Vector3.distance(a, b)
+
+    #[[ A rectangle in the x-y plane, starting at the origin
+    #
+    #   Goes clockwise to the points:
+    #       (0, 0, 0), (0, height, 0), (width, height, 0), (width, 0, 0)
+    #   in that order.
+    #]]
+    rectangle(width:Num, height:Num):Path
+    {
+        pointA = Vector3(0, 0, 0)
+        pointB = Vector3(0, height, 0)
+        pointC = Vector3(width, height, 0)
+        pointD = Vector3(width, 0, 0)
+
+        return = Path.concatAll(
+            list(
+                {path=line(pointA, pointB), length=height},
+                {path=line(pointB, pointC), length=width},
+                {path=line(pointC, pointD), length=height},
+                {path=line(pointD, pointA), length=width}
+            )
+        )
+    }
+    rectangleLength(width:Num, height:Num):Num = 2.mul(width.add(height))
+
+    #[[ Create a lissajous curve in the x-y plane.
+    #
+    #   The frequencies must be integers for the
+    #   path to start and end at the same position.
+    #]]
+    lissajous(radii:Vector2, frequencies:Vector2, phaseDifference:Num):Path
+    {
+        omega = frequencies.scale(Num.tau)  # Angular Frequencies
+
+        lissajousFunction(u:Num):Vector3
+        {
+            xPhase = u.mul(omega.x)
+            yPhase = u.mul(omega.y).add(phaseDifference)
+            xProgress = Num.sin(xPhase)
+            yProgress = Num.sin(yPhase)
+            xPos = xProgress.mul(radii.x)
+            yPos = yProgress.mul(radii.y)
+            return = Vector3(xPos, yPos, 0)
+        }
+        return = Path(lissajousFunction, Bounds(0, 1))
+    }
+
+    #[[ Create a rose curve in the x-y plane.
+    #
+    #   The petalConstant must be an integer for the
+    #   path to start and end at the same position.
+    #]]
+    rose(radius:Num, frequency:Num, petalConstant:Num):Path
+    {
+        omega = frequency.mul(Num.tau)
+        roseFunction(u:Num):Vector3
+        {
+            phase = omega.mul(u)
+            roseFactor = Num.cos(petalConstant.mul(phase))
+            xPos = Num.cos(phase).mul(roseFactor)
+            yPos = Num.sin(phase).mul(roseFactor)
+            return = Vector3(xPos, yPos, 0)
+        }
+        return = Path(roseFunction, Bounds(0, 1))
+    }
+}

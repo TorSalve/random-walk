@@ -1,0 +1,135 @@
+namespace TestHands
+{
+    #[[ An invalid Hand object ]]
+    invalid
+    {
+        isValid = false
+        isRight = true
+        palmPosition = Vector3(0, 0, 0)
+        palmDirection = Vector3(0, 1, 0)
+        palmNormal = Vector3(0, 0, -1)
+        zeroPos = Vector3(0, 0, 0)
+        zeroDigit = SimpleDigit(zeroPos, zeroPos, zeroPos, zeroPos, zeroPos)
+        return = SimpleHand(isValid, isRight, palmPosition, palmDirection, palmNormal,zeroDigit, zeroDigit, zeroDigit, zeroDigit, zeroDigit)
+    }
+
+    #[[ A hand which is flat in the x-y plane
+    #
+    #   The digits do not have valid data.
+    #]]
+    flat
+    {
+        isValid = true
+        isRight = true
+        palmPosition = Vector3(0, 0, 0.2)
+        palmDirection = Vector3(0, 1, 0)
+        palmNormal = Vector3(0, 0, -1)
+
+        zeroPos = Vector3(0, 0, 0)
+        zeroDigit = SimpleDigit(zeroPos, zeroPos, zeroPos, zeroPos, zeroPos)
+        return = SimpleHand(isValid, isRight, palmPosition, palmDirection, palmNormal,zeroDigit, zeroDigit, zeroDigit, zeroDigit, zeroDigit)
+    }
+
+    #[[ A hand which is tilted in the x-axis to point downwards
+    #
+    #   The digits do not have valid data.
+    #]]
+    xTilt
+    {
+        isValid = true
+        isRight = true
+        palmPosition = Vector3(0, 0, 0.2)
+        palmDirection = Vector3(0, 1.div(2.sqrt), -1.div(2.sqrt))
+        palmNormal = Vector3(0, -1.div(2.sqrt), -1.div(2.sqrt))
+
+        zeroPos = Vector3(0, 0, 0)
+        zeroDigit = SimpleDigit(zeroPos, zeroPos, zeroPos, zeroPos, zeroPos)
+        return = SimpleHand(isValid, isRight, palmPosition, palmDirection, palmNormal,zeroDigit, zeroDigit, zeroDigit, zeroDigit, zeroDigit)
+    }
+
+    #[[ A hand which is tilted in the y-axis
+    #
+    #   The digits do not have valid data.
+    #]]
+    yTilt
+    {
+        isValid = true
+        isRight = true
+        palmPosition = Vector3(0, 0, 0.2)
+        palmDirection = Vector3(0, 1, 0)
+        palmNormal = Vector3(-1.div(2.sqrt), 0, -1.div(2.sqrt))
+
+        zeroPos = Vector3(0, 0, 0)
+        zeroDigit = SimpleDigit(zeroPos, zeroPos, zeroPos, zeroPos, zeroPos)
+        return = SimpleHand(isValid, isRight, palmPosition, palmDirection, palmNormal,zeroDigit, zeroDigit, zeroDigit, zeroDigit, zeroDigit)
+    }
+
+    #[[ A flat hand in the x-y plane
+    #
+    #   The digits have been given some dummy data
+    #]]
+    flatWithDigits
+    {
+        isValid = true
+        isRight = true
+        palmPosition = Vector3(0, 0, 0.2)
+        palmDirection = Vector3(0, 1, 0)
+        palmNormal = Vector3(0, 0, -1)
+
+        # Make a hand centred on the palmPosition
+        # The metacarpal is 2*boneLength, and every other bone has the same length
+        # The thumb metacarpal has length 0
+        boneLength = 0.02
+        fingerOffset = 0.01
+
+        middleMetacarpal = palmPosition.add(Vector3.back.scale(boneLength))
+        middleProximal = palmPosition.add(Vector3.forward.scale(boneLength))
+        middleIntermediate = middleProximal.add(Vector3.forward.scale(boneLength))
+        middleDistal = middleIntermediate.add(Vector3.forward.scale(boneLength))
+        middleTip = middleDistal.add(Vector3.forward.scale(boneLength))
+
+        middle = SimpleDigit(
+            middleMetacarpal,
+            middleProximal,
+            middleIntermediate,
+            middleDistal,
+            middleTip
+            )
+        
+        offsetDigit(original:SimpleDigit, offset:Vector3):SimpleDigit
+        {
+            return = SimpleDigit(
+                original.metacarpal.add(offset),
+                original.proximal.add(offset),
+                original.intermediate.add(offset),
+                original.distal.add(offset),
+                original.tip.add(offset)
+            )
+        }
+
+        index = offsetDigit(middle, Vector3.left.scale(fingerOffset))
+        ring = offsetDigit(middle, Vector3.right.scale(fingerOffset))
+        pinky = offsetDigit(ring, Vector3.right.scale(fingerOffset))
+
+        tempThumb = offsetDigit(index, Vector3.left.scale(fingerOffset))
+        thumb = SimpleDigit(
+            tempThumb.metacarpal,
+            tempThumb.metacarpal,
+            tempThumb.proximal,
+            tempThumb.intermediate,
+            tempThumb.distal
+        )
+        return = SimpleHand(isValid, isRight, palmPosition, palmDirection, palmNormal, thumb, index, middle, ring, pinky)
+    }
+}
+
+#[[ Some default inputs necessary to test some Sensations ]]
+namespace DefaultInputs
+{
+    #[[ A default input for the ForceField Sensation ]]
+    forcefieldTransform:Transform
+    {
+        return = Transform.fromAxisAngle(Vector3.right, Num.pi.half)
+    }
+}
+

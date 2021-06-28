@@ -1,0 +1,26 @@
+# File containing helpers for rendering intensity
+
+constantIntensity(intensity:Num = 1):IntensityEvaluator
+{
+    return(time:TimeSpan):Num = intensity
+}
+
+#[[ Modulate the intensity using an oscillating function
+#
+#   The range of the output intensity is (0, maxIntensity)
+#
+#   The value at time=0 is 0.
+#   The phaseOffset parameter can be used to start at a different intensity,
+#   eg phaseOffset=Num.pi will start the intensity from maxIntensity.
+#]]
+modulatedIntensity(maxIntensity:Num, frequency:Num, phaseOffset:Num):IntensityEvaluator
+{
+    return(time:TimeSpan):Num
+    {
+        phase = time.progress(1.div(frequency)).mul(Num.tau)
+        amplitude = Num.sin(phase.add(phaseOffset).sub(Num.pi.div(2)))
+
+        # remap from [-1, 1] to [0, maxIntensity]
+        return = 1.add(amplitude).div(2).mul(maxIntensity)
+    }
+}

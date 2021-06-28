@@ -1,0 +1,65 @@
+#[[ A ControlPoint is composed of a position, a direction and an intensity
+#
+#   These are the building blocks of sensations.
+#]]
+struct ControlPoint(position:Vector3, direction:Vector3, intensity:Num)
+
+constraint Evaluator(time:TimeSpan)
+constraint DirectionEvaluator(time:TimeSpan):Vector3
+constraint PositionEvaluator(time:TimeSpan):Vector3
+constraint IntensityEvaluator(time:TimeSpan):Num
+constraint ControlPointEvaluator(time:TimeSpan):ControlPoint
+
+#[[ A SensationEvaluator is required in the definition of a Sensation
+#   
+#   This must return a list of ControlPoints.
+#
+#   A Sensation is defined by a function which returns a SensationEvaluator.
+#]]
+constraint SensationEvaluator(time:TimeSpan):List
+
+#[[ Render a sensation which uses a single control point ]]
+renderSensation(controlPointEvaluator:ControlPointEvaluator):SensationEvaluator
+{
+    return(time:TimeSpan):List = list(controlPointEvaluator(time))
+}
+
+#[[ Render a sensation which uses multiple control points ]]
+renderMultiPointSensation(controlPoints:List):SensationEvaluator
+{
+    return(time:TimeSpan):List
+    {
+        newAt = _(idx:Num):ControlPoint = controlPoints.at(idx)(time)
+        return = List(newAt, controlPoints.count)
+    }
+}
+
+renderControlPoint(path:PositionEvaluator, intensity:IntensityEvaluator):ControlPointEvaluator
+{
+    return(time:TimeSpan):ControlPoint
+    {
+        return = ControlPoint(path(time), Vector3.up, intensity(time))
+    }
+}
+
+renderControlPointWithDirection(path:PositionEvaluator, direction:DirectionEvaluator, intensity:IntensityEvaluator):ControlPointEvaluator
+{
+    return(time:TimeSpan):ControlPoint
+    {
+        return = ControlPoint(path(time), direction(time), intensity(time))
+    }
+}
+
+#[[ Enable or disable rendering of a sensation based on a bool ]]
+enableSensation(enabled:Bool, sensation:SensationEvaluator):SensationEvaluator
+{
+    return(time:TimeSpan):List
+    {
+        mapper(controlPoint)
+        {
+            disabledControlPoint = ControlPoint(Vector3(0, 0, 0.2), Vector3.up, 0)
+            return = if(enabled, controlPoint, disabledControlPoint)
+        }
+        return = sensation(time).map(mapper)
+    }
+}

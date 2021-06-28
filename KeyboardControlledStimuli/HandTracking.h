@@ -5,6 +5,7 @@
 #include <map>
 
 #include "ultraleap/haptics/library.hpp"
+#include "ultraleap/haptics/kit_transforms.hpp"
 
 namespace RandomWalk::HandTracking {
 
@@ -16,6 +17,7 @@ namespace RandomWalk::HandTracking {
 
         Ultrahaptics::Vector3 palm_position;
         Ultrahaptics::Vector3 palm_direction;
+        Ultrahaptics::Vector3 palm_normal;
         Ultrahaptics::Vector3 wrist_position;
         //std::vector<Ultrahaptics::Vector3> finger_roots;
         //std::vector<Ultrahaptics::Vector3> finger_tips;
@@ -77,6 +79,7 @@ namespace RandomWalk::HandTracking {
                 // Translate the hand position from leap objects to Ultraleap Haptics objects.
                 Leap::Vector leap_palm_position = hand.palmPosition();
                 Leap::Vector leap_palm_direction = hand.direction();
+                Leap::Vector leap_palm_normal = hand.palmNormal();
                 Leap::Vector leap_wrist_position = hand.wristPosition();
 
                 // hand.fingers()
@@ -114,12 +117,14 @@ namespace RandomWalk::HandTracking {
 
                 // Convert to Ultraleap Haptics vectors, normal is negated as leap normal points down.
                 Ultrahaptics::Vector3 ulh_palm_position(leap_palm_position.x, leap_palm_position.y, leap_palm_position.z);
+                Ultrahaptics::Vector3 ulh_palm_normal(-leap_palm_normal.x, -leap_palm_normal.y, -leap_palm_normal.z);
                 Ultrahaptics::Vector3 ulh_palm_direction(leap_palm_direction.x, leap_palm_direction.y, leap_palm_direction.z);
                 Ultrahaptics::Vector3 ulh_wrist_position(leap_wrist_position.x, leap_wrist_position.y, leap_wrist_position.z);
 
                 // Update the hand data with the current information
                 local_hand_data.palm_position = ulh_palm_position;
                 local_hand_data.palm_direction= ulh_palm_direction;
+                local_hand_data.palm_normal = ulh_palm_normal;
                 local_hand_data.wrist_position = ulh_wrist_position;
 
                 local_hand_data.finger_root_thumb = finger_roots[0];

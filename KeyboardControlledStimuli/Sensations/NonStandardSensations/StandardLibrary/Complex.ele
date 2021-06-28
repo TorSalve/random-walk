@@ -1,0 +1,50 @@
+struct Complex(real:Num, imag:Num)
+{
+    zero = Complex(0, 0)
+    unitReal = Complex(1, 0)
+    unitImag = Complex(0, 1)
+
+    #[[ Create a Complex number from its polar coordinates
+    #   The angle must be in radians
+    #]]
+    fromPolar(r:Num, theta:Num):Complex
+    {
+        x = r.mul(Num.cos(theta))
+        y = r.mul(Num.sin(theta))
+        return = Complex(x, y)
+    }
+
+    conjugate(c:Complex):Complex = Complex(c.real, c.imag.mul(-1))
+
+    modulusSquared(c:Complex):Num = c.mul(c.conjugate).real
+    modulus(c:Complex):Num = Num.sqrt(c.modulusSquared)
+
+    #[[ Get the polar angle of the number in radians
+    #   Result is between -pi and pi
+    #]]
+    argument(c:Complex):Num
+    {
+        angle = Num.acos(c.real.div(c.modulus))
+        angleSign = if(c.imag.geq(0), 1, -1)
+        return = angle.mul(angleSign)
+    }
+
+    scale(c:Complex, n:Num) = Complex(c.real.mul(n), c.imag.mul(n))
+
+    add(u:Complex, v:Complex):Complex = Complex(u.real.add(v.real), u.imag.add(v.imag))
+    sub(u:Complex, v:Complex):Complex = Complex(u.real.sub(v.real), u.imag.sub(v.imag))
+
+    mul(u:Complex, v:Complex):Complex
+    {
+        newReal = u.real.mul(v.real).sub(u.imag.mul(v.imag))
+        newImaginary = u.real.mul(v.imag).add(u.imag.mul(v.real))
+        return = Complex(newReal, newImaginary)
+    }
+
+    div(u:Complex, v:Complex):Complex
+    {
+        denominator = v.modulusSquared
+        numerator = u.mul(v.conjugate)
+        return = numerator.scale(1.div(denominator))
+    }
+}

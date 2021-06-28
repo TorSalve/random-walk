@@ -1,0 +1,35 @@
+# File containing helpers for rendering Paths
+
+renderPathWithFixedPeriod(path:Path, period:Num):PositionEvaluator
+{
+    return = _(time:TimeSpan):Vector3
+    {
+        progress = time.progress(period)
+        u = Num.lerp(progress, path.domain.lower, path.domain.upper)
+        return = path.at(u)
+    }
+}
+
+renderPathWithFixedFrequency(path:Path, frequency:Num):PositionEvaluator
+{
+    period = 1.div(frequency)
+    return = renderPathWithFixedPeriod(path, period)
+}
+
+renderPathWithFixedSpeed(path:Path, pathLength:Num, speed:Num):PositionEvaluator
+{
+    period = pathLength.div(speed)
+    return = renderPathWithFixedPeriod(path, period)
+}
+
+#[[ Swap between two different position evaluators at a given frequency
+#
+#   At t=0, evaluatorA will be rendered.
+#]]
+swapBetweenEvaluators(evaluatorA:PositionEvaluator, evaluatorB:PositionEvaluator, frequency:Num):PositionEvaluator
+{
+    return(time:TimeSpan):Vector3
+    {
+        return = if(time.cycles(1.div(frequency)).rem(2).eq(0), evaluatorA(time), evaluatorB(time))
+    }
+}

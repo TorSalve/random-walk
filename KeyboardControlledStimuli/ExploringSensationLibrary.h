@@ -1,6 +1,8 @@
 #pragma once
 #include <list>
 
+#include <ultraleap/haptics/sensations.hpp>
+
 namespace RandomWalk::Sensations
 {
     enum class KnownSensation

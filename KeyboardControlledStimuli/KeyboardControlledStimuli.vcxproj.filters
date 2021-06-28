@@ -19,11 +19,14 @@
     <Filter Include="Source Files\bib">
       <UniqueIdentifier>{35914228-bcf1-41b5-b706-62ebc16d9517}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\main">
+      <UniqueIdentifier>{1d7a1709-ec21-4546-ad3a-a7438f8224bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Sensations">
+      <UniqueIdentifier>{62ee5d8a-32d6-44cf-a135-b2f3b7b5d769}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="KeyboardControlledStimuli.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ExploringSensationLibrary.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -54,9 +57,24 @@
     <ClCompile Include="Configurations.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="KeyboardControlledStimuli.cpp">
+      <Filter>Source Files\main</Filter>
+    </ClCompile>
+    <ClCompile Include="SensationWebsocketControl.cpp">
+      <Filter>Source Files\Sensations</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="StandardSensations.ssp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="NonStandardSensations.ssp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Sensations.json">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
@@ -73,7 +91,7 @@
     <ClInclude Include="Entries.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Utils.h">
+    <ClInclude Include="Utils.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Parameters.h">

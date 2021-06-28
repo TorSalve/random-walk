@@ -1,0 +1,28 @@
+{
+  "shared_params": {
+    "intensity": [ 0.4, 0.6, 0.8, 1 ],
+    "frequency": [ 32, 128, 256, 512 ]
+  },
+  "sensations": [
+    {
+      "sensation": "RW.AmplitudeModulation",
+      "shared_params": {
+        "intensity": "maxIntensity",
+        "frequency": "frequency"
+      }
+    },
+    {
+      "sensation": "RW.Large",
+      "shared_params": {
+        "intensity": "intensity",
+        "frequency": "frequency"
+      },
+      "params": {
+        "scanLength": 0.075,
+        "lineLength": 0.125,
+        "lineFrequency": [ 125, 150 ],
+        "scanFrequency": 125
+      }
+    }
+  ]
+}
