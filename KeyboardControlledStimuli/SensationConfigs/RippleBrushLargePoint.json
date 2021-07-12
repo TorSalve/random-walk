@@ -1,0 +1,45 @@
+{
+  "shared_params": {
+    "duration": [ 256, 512, 1024 ],
+    "intensity": [ 0.6, 0.8, 1 ],
+    "frequency": [ 128, 256, 512 ]
+  },
+  "sensations": [
+    {
+      "sensation": "RW.Ripple",
+      "shared_params": {
+        "duration": "duration",
+        "intensity": "intensity"
+      }
+    },
+    {
+      "sensation": "RW.AmplitudeModulatedPoint",
+      "shared_params": {
+        "duration": "duration",
+        "intensity": "maxIntensity",
+        "frequency": "frequency"
+      }
+    },
+    {
+      "sensation": "RW.Brush",
+      "shared_params": {
+        "duration": "duration",
+        "frequency": "frequency"
+      }
+    },
+    {
+      "sensation": "RW.Large",
+      "shared_params": {
+        "duration": "duration",
+        "intensity": "intensity",
+        "frequency": "frequency"
+      },
+      "params": {
+        "scanLength": 0.075,
+        "lineLength": 0.125,
+        "lineFrequency": 125,
+        "scanFrequency": 125
+      }
+    }
+  ]
+}

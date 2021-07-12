@@ -5,9 +5,21 @@
   },
   "sensations": [
     {
-      "sensation": "RW.AmplitudeModulation",
+      "sensation": "RW.Ripple",
+      "shared_params": {
+        "intensity": "intensity"
+      }
+    },
+    {
+      "sensation": "RW.AmplitudeModulatedPoint",
       "shared_params": {
         "intensity": "maxIntensity",
+        "frequency": "frequency"
+      }
+    },
+    {
+      "sensation": "RW.Brush",
+      "shared_params": {
         "frequency": "frequency"
       }
     },
@@ -20,7 +32,7 @@
       "params": {
         "scanLength": 0.075,
         "lineLength": 0.125,
-        "lineFrequency": [ 125, 150 ],
+        "lineFrequency": 125,
         "scanFrequency": 125
       }
     }

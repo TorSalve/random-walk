@@ -366,6 +366,33 @@ namespace HandSensations
         return = enableSensation(hand.isValid, sensation)
     }
 
+    #[[ Play circles randomly centred in different places in a rectangle
+    #
+    #   @zoneWidth      - The width of the zone in which circles can be created
+    #   @zoneLength     - The length of the zone in which circles can be created
+    #   @jumpFrequency  - The frequency at which the circle jumps
+    #   @circleRadius   - The radius of the circle
+    #   @circleSpeed    - The speed at which the ControlPoint moves around the circle
+    #]]
+    rwripple(
+        hand:SimpleHand = TestHands.invalid,
+        zoneWidth:Num = 0.1,
+        zoneLength:Num = 0.1,
+        jumpFrequency:Num = 10,
+        circleRadius:Num = 0.02,
+        circleSpeed:Num = 8,
+        intensity:Num = 1
+        ):SensationEvaluator
+    {
+        palmPosition = hand.palmPosition
+        palmRotation = hand.palmRotation
+        sensation = StandardSensations.ripple(
+            zoneWidth, zoneLength, jumpFrequency, circleRadius, circleSpeed,
+            palmPosition, palmRotation, intensity
+        )
+        return = enableSensation(hand.isValid, sensation)
+    }
+
     #[[ Fix a ControlPoint in space and modulate the intensity
     #
     #   Uses Amplitude Modulation to create a localised sensation
@@ -375,7 +402,7 @@ namespace HandSensations
     #   @maxIntensity  - The peak ControlPoint intensity during amplitude modulation
     #
     #]]
-    amplitudeModulatedPoint(
+    rwamplitudeModulatedPoint(
         hand:SimpleHand = TestHands.invalid,
         frequency:Num = 100,
         maxIntensity:Num = 1):SensationEvaluator
@@ -411,7 +438,7 @@ namespace HandSensations
     #                    plane
     #   @intensity     - The intensity of the ControlPoint
     #]]
-    brush(hand:SimpleHand = TestHands.invalid,
+    rwbrush(hand:SimpleHand = TestHands.invalid,
          scanLength:Num = 0.125, 
          scanFrequency:Num = 0.5, 
          lineLength:Num = 0.05,
@@ -467,7 +494,7 @@ namespace HandSensations
     #                    plane
     #   @intensity     - The intensity of the ControlPoint
     #]]
-    large(hand:SimpleHand = TestHands.invalid,
+    rwlarge(hand:SimpleHand = TestHands.invalid,
          scanLength:Num = 0.125, 
          scanFrequency:Num = 0.5, 
          lineLength:Num = 0.05,
@@ -503,3 +530,4 @@ namespace HandSensations
         return = enableSensation(hand.isValid, sensation)
     }
 }
+

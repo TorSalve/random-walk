@@ -1,0 +1,52 @@
+{
+  "sensations": [
+    {
+      "sensation": "Hand.CircleWithFixedSpeed"
+    },
+    {
+      "sensation": "Hand.CircleWithFixedFrequency"
+    },
+    {
+      "sensation": "Hand.Dial"
+    },
+    {
+      "sensation": "Hand.Lissajous"
+    },
+    {
+      "sensation": "Hand.Scan"
+    },
+    {
+      "sensation": "Hand.OpenCloseWithFixedSpeed"
+    },
+    {
+      "sensation": "Hand.OpenCloseWithFixedFrequency"
+    },
+    {
+      "sensation": "Hand.RotorWithFixedSpeed"
+    },
+    {
+      "sensation": "Hand.RotorWithFixedFrequency"
+    },
+    {
+      "sensation": "Hand.Lightning"
+    },
+    {
+      "sensation": "Hand.Ripple"
+    },
+    {
+      "sensation": "RW.AmplitudeModulatedPoint"
+    },
+    {
+      "sensation": "RW.Brush"
+    },
+    {
+      "sensation": "RW.Large",
+      "params": {
+        "scanLength": 0.075,
+        "lineLength": 0.125,
+        "lineFrequency": 125,
+        "scanFrequency": 125
+      }
+    }
+  ]
+}

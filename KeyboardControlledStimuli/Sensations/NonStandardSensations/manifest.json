@@ -22,6 +22,7 @@
         {"DisplayName": "Lissajous", "FullyQualifiedFunction": "StandardSensations.lissajous"},
         {"DisplayName": "Ripple", "FullyQualifiedFunction": "StandardSensations.ripple"},
         {"DisplayName": "AmplitudeModulatedPoint", "FullyQualifiedFunction": "StandardSensations.amplitudeModulatedPoint"},
+        
         {"DisplayName": "Hand.CircleWithFixedSpeed", "FullyQualifiedFunction": "HandSensations.circleWithFixedSpeed"},
         {"DisplayName": "Hand.CircleWithFixedFrequency", "FullyQualifiedFunction": "HandSensations.circleWithFixedFrequency"},
         {"DisplayName": "Hand.Dial", "FullyQualifiedFunction": "HandSensations.dial"},
@@ -34,10 +35,10 @@
         {"DisplayName": "Hand.Lightning", "FullyQualifiedFunction": "HandSensations.lightning"},
         {"DisplayName": "Hand.Ripple", "FullyQualifiedFunction": "HandSensations.ripple"},
 
-        {"DisplayName": "RW.Ripple", "FullyQualifiedFunction": "HandSensations.ripple"},
-        {"DisplayName": "RW.AmplitudeModulatedPoint", "FullyQualifiedFunction": "HandSensations.amplitudeModulatedPoint"},
-        {"DisplayName": "RW.Brush", "FullyQualifiedFunction": "HandSensations.brush"},
-        {"DisplayName": "RW.Large", "FullyQualifiedFunction": "HandSensations.large"}
+        {"DisplayName": "RW.Ripple", "FullyQualifiedFunction": "HandSensations.rwripple"},
+        {"DisplayName": "RW.AmplitudeModulatedPoint", "FullyQualifiedFunction": "HandSensations.rwamplitudeModulatedPoint"},
+        {"DisplayName": "RW.Brush", "FullyQualifiedFunction": "HandSensations.rwbrush"},
+        {"DisplayName": "RW.Large", "FullyQualifiedFunction": "HandSensations.rwlarge"}
       ]
     }
   }

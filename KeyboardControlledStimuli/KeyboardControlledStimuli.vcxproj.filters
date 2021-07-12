@@ -25,6 +25,9 @@
     <Filter Include="Source Files\Sensations">
       <UniqueIdentifier>{62ee5d8a-32d6-44cf-a135-b2f3b7b5d769}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Sensations">
+      <UniqueIdentifier>{ad5b152b-7afd-4831-9225-babe2f499cd1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ExploringSensationLibrary.cpp">
@@ -71,11 +74,14 @@
     <None Include="StandardSensations.ssp">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="NonStandardSensations.ssp">
-      <Filter>Resource Files</Filter>
+    <None Include="SensationConfigs\AllSensations.json">
+      <Filter>Resource Files\Sensations</Filter>
     </None>
-    <None Include="Sensations.json">
-      <Filter>Resource Files</Filter>
+    <None Include="SensationConfigs\Sensations.json">
+      <Filter>Resource Files\Sensations</Filter>
+    </None>
+    <None Include="SensationConfigs\RippleBrushLargePoint.json">
+      <Filter>Resource Files\Sensations</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -104,6 +110,9 @@
       <Filter>Header Files\bib</Filter>
     </ClInclude>
     <ClInclude Include="Configurations.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

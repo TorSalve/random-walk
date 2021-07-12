@@ -10,6 +10,8 @@
 #include <string>
 #include <thread>
 
+#include <boost/asio.hpp>
+
 #include "easywsclient.hpp"
 #include "json.hpp"
 
@@ -52,16 +54,6 @@ int getch_noblock() {
     return -1;
 }
 
-std::vector<int> durations = {512, 1024, 2048, 4098};
-std::vector<int> frequencies = {32, 128, 256, 512};
-std::vector<float> intensities = {0.4, 0.6, 0.8, 1};
-
-std::map<std::string, std::map<std::string, std::string>> translation = {
-    {"RW.AmplitudeModulatedPoint",
-     {{"frequency", "frequency"}, {"intensity", "maxIntensity"}}},
-    {"RW.Brush", {{"frequency", "scanFrequency"}, {"intensity", "intensity"}}},
-    {"RW.Ripple", {{"frequency", "intensity"}, {"intensity", "intensity"}}}};
-
 int entry(int argc, char* argv[]) {
 #pragma region START_DEVICE
 
@@ -99,10 +91,14 @@ int entry(int argc, char* argv[]) {
   }
 #pragma endregion
 
+  bool randomize = true;
+  bool advance_with_websocket = false;
 #pragma region INIT_WS
-  const std::string ws_url = "ws://localhost:8081/";
-  ws = easywsclient::WebSocket::from_url(ws_url);
-#pragma endregion INIT_WS
+  if (advance_with_websocket) {
+    const std::string ws_url = "ws://localhost:8081/";
+    ws = easywsclient::WebSocket::from_url(ws_url);
+  }
+#pragma endregion
 
   // Load the sensation package
   const auto sensation_package_result =
@@ -114,31 +110,57 @@ int entry(int argc, char* argv[]) {
   const auto& sensation_package = sensation_package_result.value();
 
   typedef std::map<std::string, float> parameters;
-  typedef std::map<std::string, std::tuple<std::string, parameters>> sensations;
+  // #0 sensation name, #1 sensation key
+  typedef std::map<std::string,
+                   std::tuple<std::string, std::string, parameters>>
+      sensations;
+  typedef std::vector<float> sensation_value;
+  // #0 sensation name, #1 sensation key
+  typedef std::map<std::string, sensation_value> sensation_values;
+
   sensations _sensations;
 
-  std::ifstream fj("Sensations.json");
   json jsensations;
-  fj >> jsensations;
+  try {
+    std::ifstream fj("SensationConfigs/Sensations.json");
+    try {
+      fj >> jsensations;
+    } catch (const std::exception&) {
+      std::cerr << "Failed to parse sensations JSON" << std::endl;
+      return 1;
+    }
+  } catch (const std::exception&) {
+    std::cerr << "Failed to load sensations JSON" << std::endl;
+    return 1;
+  }
 
   std::string sensations_key = "sensations";
   std::string shared_params_key = "shared_params";
-  std::string sensation_name_key = "sensation";
+  std::string sensation_key = "sensation";
+  std::string sensation_name_key = "name";
   std::string sensation_shared_params_key = "shared_params";
   std::string sensation_params_key = "params";
 
-  std::map<std::string, std::map<std::string, std::vector<float>>> iterators;
+  std::map<std::tuple<std::string, std::string>, sensation_values> iterators;
   if (jsensations.contains(sensations_key)) {
     for (auto& jsensation : jsensations[sensations_key]) {
       parameters parameters;
 
-      std::string sensation_name = jsensation[sensation_name_key];
-      Utils::replace(sensation_name, "\"", "");
+      std::string sensation_id = jsensation[sensation_key];
+      Utils::replace(sensation_id, "\"", "");
+
+      std::string sensation_name = sensation_id;
+      if (jsensation.contains(sensation_name_key)) {
+        sensation_name = jsensation[sensation_name_key];
+        Utils::replace(sensation_name, "\"", "");
+      }
+
+      std::tuple<std::string, std::string> id = {sensation_name, sensation_id};
 
       // insert shared parameters
       if (jsensation.contains(sensation_shared_params_key)) {
-        auto curr_sensation_it = iterators.find(jsensation[sensation_name_key]);
-        std::map<std::string, std::vector<float>> curr_sensation = {};
+        auto curr_sensation_it = iterators.find(id);
+        sensation_values curr_sensation = {};
         if (curr_sensation_it != iterators.end()) {
           curr_sensation = curr_sensation_it->second;
         }
@@ -153,7 +175,7 @@ int entry(int argc, char* argv[]) {
               continue;
             }
             auto curr_param_it = curr_sensation.find(value);
-            std::vector<float> curr_params;
+            sensation_value curr_params;
             if (curr_param_it != curr_sensation.end()) {
               curr_params = curr_param_it->second;
             }
@@ -163,23 +185,24 @@ int entry(int argc, char* argv[]) {
             curr_sensation.insert({value, curr_params});
           }
         }
-        iterators[sensation_name] = curr_sensation;
+        iterators[id] = curr_sensation;
       }
 
       if (jsensation.contains(sensation_params_key)) {
-        auto curr_sensation_it = iterators.find(jsensation[sensation_name_key]);
-        std::map<std::string, std::vector<float>> curr_sensation = {};
+        auto curr_sensation_it = iterators.find(id);
+        sensation_values curr_sensation;
         if (curr_sensation_it != iterators.end()) {
           curr_sensation = curr_sensation_it->second;
         }
 
         auto o = jsensation[sensation_params_key];
         for (json::iterator it = o.begin(); it != o.end(); ++it) {
+          sensation_value curr_params;
           auto curr_param_it = curr_sensation.find(it.key());
-          std::vector<float> curr_params;
           if (curr_param_it != curr_sensation.end()) {
             curr_params = curr_param_it->second;
           }
+
           auto values = it.value();
           if (!values.is_array()) {
             values = std::vector<float>{values};
@@ -188,11 +211,18 @@ int entry(int argc, char* argv[]) {
           curr_params.insert(curr_params.end(), values.begin(), values.end());
           curr_sensation.insert({it.key(), curr_params});
         }
-        iterators[sensation_name] = curr_sensation;
+        iterators[id] = curr_sensation;
+      }
+
+      if (!jsensation.contains(sensation_shared_params_key) &&
+          !jsensation.contains(sensation_params_key)) {
+        iterators[id] = {};
       }
     }
+
     for (auto sensation : iterators) {
-      std::string sensation_name = sensation.first;
+      std::string sensation_name = std::get<0>(sensation.first);
+      std::string sensation_id = std::get<1>(sensation.first);
 
       auto keys = Utils::map_get_keys(sensation.second);
       auto values = Utils::map_get_values(sensation.second);
@@ -209,16 +239,18 @@ int entry(int argc, char* argv[]) {
         indices[i] = 0;
 
       while (1) {
-        // print current combination
-        std::string k = sensation_name;
+        std::string k = sensation_name + "_" + sensation_id;
         parameters params;
         for (int i = 0; i < n; i++) {
           auto key = keys[i];
           auto value = values[i][indices[i]];
-          k += "_" + key[0] + std::to_string(value);
+          std::stringstream stream;
+          stream << std::fixed << std::setprecision(3) << value;
+          std::string s = stream.str();
+          k = k + "_" + key.at(0) + s;
           params.insert({key, value});
         }
-        _sensations.insert({k, {sensation_name, params}});
+        _sensations.insert({k, {sensation_name, sensation_id, params}});
 
         // find the rightmost array that has more
         // elements left after the current element
@@ -244,60 +276,17 @@ int entry(int argc, char* argv[]) {
       }
     }
   }
-  return 0;
-
-  //// for (auto& d : durations) {
-  // for (auto& i : intensities) {
-  //  for (auto& f : frequencies) {
-  //    for (std::string sn : {"RW.AmplitudeModulatedPoint", "RW.Ripple"}) {
-  //      std::string k = sn + "_" + std::to_string(i) + "_" +
-  //      std::to_string(f);
-  //      // + "_" + std::to_string(d);
-  //      parameters params;
-  //      auto fn = translation[sn]["frequency"];
-  //      auto in = translation[sn]["intensity"];
-  //      params.insert({fn, f});
-  //      params.insert({in, i});
-  //      // params.insert({"duration", f});
-  //      sensations.insert({k, {sn, params}});
-  //    }
-
-  //    std::string sn = "RW.Large";
-  //    std::string k = sn + "_" + std::to_string(i) + "_" + std::to_string(f);
-  //    parameters all_over_params = {
-  //        {"scanLength", 0.075f},
-  //        //{"duration", d},
-  //        {"lineLength", 0.125f},
-  //        {"lineFrequency", 125},
-  //        {"scanFrequency", 125},
-  //        {"intensity", i},
-  //        {"frequency", f},
-  //    };
-  //    sensations.insert({k, {sn, all_over_params}});
-  //  }
-
-  //  for (auto& f : {0.5f, 1.f, 2.f, 4.f}) {
-  //    std::string sn = "RW.Brush";
-  //    std::string k = sn + "_" + std::to_string(i) + "_" + std::to_string(f);
-  //    // + "_" + std::to_string(d);
-  //    parameters params;
-  //    auto fn = translation[sn]["frequency"];
-  //    auto in = translation[sn]["intensity"];
-  //    params.insert({fn, f});
-  //    params.insert({in, i});
-  //    // params.insert({"duration", f});
-  //    sensations.insert({k, {sn, params}});
-  //  }
-  //}
-
-  //}
 
   auto setSensation = [&](std::string s_key, bool notify) {
-    std::cout << "now playing: " << s_key << std::endl;
     auto sensation_t = _sensations[s_key];
-    auto sensation = std::get<0>(sensation_t);
-    auto params = std::get<1>(sensation_t);
-    const auto hand_tracked_sensation = sensation_package.sensation(sensation);
+    std::string sensation_name = std::get<0>(sensation_t);
+    std::string sensation_id = std::get<1>(sensation_t);
+    parameters params = std::get<2>(sensation_t);
+
+    std::cout << "now playing: " << s_key << std::endl;
+
+    const auto hand_tracked_sensation =
+        sensation_package.sensation(sensation_id);
     if (!hand_tracked_sensation) {
       throw "Unknown sensation";
     }
@@ -318,31 +307,49 @@ int entry(int argc, char* argv[]) {
       throw "Could not set sensation";
     }
 
+    auto duration_it = params.find("duration");
+    if (duration_it != params.end()) {
+      float duration = duration_it->second;
+      boost::asio::io_context io;
+      boost::asio::steady_timer t(
+          io, boost::asio::chrono::milliseconds((int)duration));
+      t.async_wait([&](const boost::system::error_code&) { emitter.pause(); });
+      io.run();
+    }
+
     // auto duration = params["duration"];
     // std::this_thread::sleep_for(std::chrono::milliseconds((int)duration));
     // emitter.pause();
 
-    if (notify) {
-      json j = {
-          {"name", sensation},
-          {"intensity", params[translation[sensation]["intensity"]]},
-          {"frequency", params[translation[sensation]["frequency"]]},
-          //{"duration", params["duration"]}
-      };
-      ws->send("stm" + j.dump());
+    if (notify && advance_with_websocket) {
+      json jsensation;
+      jsensation["name"] = sensation_name;
+      jsensation["id"] = sensation_id;
+
+      for (auto param : params) {
+        jsensation[param.first] = param.second;
+      }
+      ws->send("stm" + jsensation.dump());
     }
 
     return sensation_instance;
   };
 
+  std::cout << "Hit ENTER to quit..." << std::endl;
+
   // Load the data of the named Sensation
   auto sensation_keys = Utils::map_get_keys(_sensations);
-  std::shuffle(sensation_keys.begin(), sensation_keys.end(),
-               std::default_random_engine(42));
+  if (randomize) {
+    std::shuffle(sensation_keys.begin(), sensation_keys.end(),
+                 std::default_random_engine(42));
+  }
+
+  std::cout << sensation_keys.size() << " total combinations" << std::endl;
+
   int idx = 0;
   try {
     SensationInstance sensation_instance =
-        setSensation(sensation_keys[idx], true);
+        setSensation(sensation_keys[idx], false);
 
     // Set up Leap
     Leap::Controller leap_control;
@@ -372,24 +379,27 @@ int entry(int argc, char* argv[]) {
     if (!emitter_result)
       return 2;
 
-    std::cout << "Hit ENTER to quit..." << std::endl;
-    bool advance_with_websocket = false;
+    emitter.pause();
     if (advance_with_websocket) {
       while (ws->getReadyState() != easywsclient::WebSocket::CLOSED) {
         ws->poll();
         ws->dispatch([&](const std::string& message) mutable {
-          if (message == "\"stmnext\"") {
+          bool next = message == "\"stmnext\"";
+          bool replay = message == "\"stmreplay\"";
+          if (next || replay) {
             if (emitter.isPaused().value()) {
               emitter.resume();
             }
 
-            idx += 1;
-            if (idx >= sensation_keys.size()) {
-              idx = 0;
-              std::cout << "end reached ---------------------" << std::endl;
-            }
+            sensation_instance = setSensation(sensation_keys[idx], next);
 
-            sensation_instance = setSensation(sensation_keys[idx], true);
+            if (next) {
+              idx += 1;
+              if (idx >= sensation_keys.size()) {
+                idx = 0;
+                std::cout << "end reached ---------------------" << std::endl;
+              }
+            }
           }
         });
 
@@ -400,6 +410,7 @@ int entry(int argc, char* argv[]) {
         }
       }
     } else {
+      bool advance = false;
       while (true) {
         int key = getch_noblock();
 
@@ -414,15 +425,18 @@ int entry(int argc, char* argv[]) {
             emitter.resume();
           }
 
-          if (key != 32) {
-            idx += 1;
-          }
-          if (idx >= sensation_keys.size()) {
-            idx = 0;
-            std::cout << "end reached ---------------------" << std::endl;
+          if (advance) {
+            if (key != 32) {
+              idx += 1;
+            }
+            if (idx >= sensation_keys.size()) {
+              idx = 0;
+              std::cout << "end reached ---------------------" << std::endl;
+            }
           }
 
           sensation_instance = setSensation(sensation_keys[idx], false);
+          advance = true;
         }
 
         /*switch (Utils::hash(key.c_str())) {
