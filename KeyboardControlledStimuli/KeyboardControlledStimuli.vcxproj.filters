@@ -83,6 +83,12 @@
     <None Include="SensationConfigs\RippleBrushLargePoint.json">
       <Filter>Resource Files\Sensations</Filter>
     </None>
+    <None Include="SensationConfigs\Pilot.json">
+      <Filter>Resource Files\Sensations</Filter>
+    </None>
+    <None Include="SensationConfigs\Test.json">
+      <Filter>Resource Files\Sensations</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HandTracking.h">
@@ -113,6 +119,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

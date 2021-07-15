@@ -38,7 +38,9 @@
         {"DisplayName": "RW.Ripple", "FullyQualifiedFunction": "HandSensations.rwripple"},
         {"DisplayName": "RW.AmplitudeModulatedPoint", "FullyQualifiedFunction": "HandSensations.rwamplitudeModulatedPoint"},
         {"DisplayName": "RW.Brush", "FullyQualifiedFunction": "HandSensations.rwbrush"},
-        {"DisplayName": "RW.Large", "FullyQualifiedFunction": "HandSensations.rwlarge"}
+        {"DisplayName": "RW.Large", "FullyQualifiedFunction": "HandSensations.rwlarge"},
+        {"DisplayName": "RW.Circle", "FullyQualifiedFunction": "HandSensations.rwcircleWithFixedFrequency"}
+        
       ]
     }
   }

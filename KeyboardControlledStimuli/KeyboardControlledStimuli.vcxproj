@@ -187,8 +187,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="SensationConfigs\AllSensations.json" />
+    <None Include="SensationConfigs\Pilot.json" />
     <None Include="SensationConfigs\RippleBrushLargePoint.json" />
     <None Include="SensationConfigs\Sensations.json" />
+    <None Include="SensationConfigs\Test.json" />
     <None Include="StandardSensations.ssp" />
   </ItemGroup>
   <ItemGroup>
@@ -201,6 +203,7 @@
     <ClInclude Include="LeapHandConverter.hpp" />
     <ClInclude Include="Parameters.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="Timer.hpp" />
     <ClInclude Include="Utils.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

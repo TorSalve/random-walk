@@ -1,0 +1,19 @@
+{
+  "shared_params": {
+    "intensity": [ 1 ],
+    "frequency": [ 16, 125, 250 ],
+    "duration": [ 4000 ],
+    "meta_frequency": [ 1 ]
+  },
+  "sensations": [
+    {
+      "sensation": "RW.Circle",
+      "shared_params": {
+        "intensity": "intensity",
+        "frequency": "frequency",
+        "meta_frequency": "meta_frequency",
+        "duration": "duration"
+      }
+    }
+  ]
+}

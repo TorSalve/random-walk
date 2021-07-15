@@ -381,15 +381,47 @@ namespace HandSensations
         jumpFrequency:Num = 10,
         circleRadius:Num = 0.02,
         circleSpeed:Num = 8,
-        intensity:Num = 1
+        intensity:Num = 1,
+        frequency:Num = 100
         ):SensationEvaluator
     {
-        palmPosition = hand.palmPosition
-        palmRotation = hand.palmRotation
-        sensation = StandardSensations.ripple(
-            zoneWidth, zoneLength, jumpFrequency, circleRadius, circleSpeed,
-            palmPosition, palmRotation, intensity
-        )
+        position = hand.palmPosition
+        rotation = hand.palmRotation
+        
+        centreEvaluator(time:TimeSpan):Vector3
+        {
+            elapsedPositionJumps = time.cycles(1.div(jumpFrequency))
+    
+            # Look up pairs of random numbers from the Random look-up table, to determine where the
+            # circle should be positioned in the ripple-zone.
+            xIndex = elapsedPositionJumps.mul(2).rem(Random.lookupTable.count)
+            yIndex = elapsedPositionJumps.mul(2).add(1).rem(Random.lookupTable.count)
+            xCentre = Random.lookupTable.at(xIndex).sub(0.5).mul(zoneWidth)
+            yCentre = Random.lookupTable.at(yIndex).sub(0.5).mul(zoneLength)
+            zCentre = 0
+
+            return = Vector3(xCentre, yCentre, zCentre)
+        }
+
+        circleEvaluator = renderPathWithFixedSpeed(StandardPaths.circle(circleRadius), StandardPaths.circleLength(circleRadius), circleSpeed)
+
+        rippleEvaluator(time:TimeSpan):Vector3
+        {
+            centrePosition = centreEvaluator(time)
+            offsetFromCentre = circleEvaluator(time)
+
+            ripplePosition = centrePosition.add(offsetFromCentre)
+
+            # Apply the Transform specified by the inputs
+            inputTransform = Transform.fromRotationAndTranslation(rotation, position)
+            return = inputTransform.applyToPosition(ripplePosition)
+        }
+
+        intensityEvaluator = modulatedIntensity(intensity, frequency, 0)
+
+        controlPointEvaluator = renderControlPoint(rippleEvaluator, intensityEvaluator)
+        sensation = renderSensation(controlPointEvaluator)
+
         return = enableSensation(hand.isValid, sensation)
     }
 
@@ -529,5 +561,41 @@ namespace HandSensations
 
         return = enableSensation(hand.isValid, sensation)
     }
+
+    #[[ Move a ControlPoint in a circle on the palm of the hand
+    #
+    #   Move the point with a fixed angular frequency.
+    #
+    #   Changing frequency during playback can cause jumps in ControlPoint position.
+    #
+    #   @hand      - The hand to project the circle onto
+    #   @radius    - The radius of the circle (metres)
+    #   @frequency - The frequency at which the ControlPoint moves around the circle (Hz)
+    #   @intensity - The intensity of the Control Point
+    #]]
+    rwcircleWithFixedFrequency(
+        hand:SimpleHand = TestHands.invalid,
+        radius:Num = 0.02,
+        circ_frequency:Num = 64,
+        frequency:Num = 100,
+        intensity:Num = 1):SensationEvaluator
+    {
+        position = hand.palmPosition
+        rotation = hand.palmRotation
+
+        pathTransform = Transform.fromRotationAndTranslation(rotation, position)
+
+        circlePath = StandardPaths.circle(radius).applyTransform(pathTransform)
+
+        pathEvaluator = renderPathWithFixedFrequency(circlePath, circ_frequency)
+        intensityEvaluator = modulatedIntensity(intensity, frequency, 0)
+
+        controlPointEvaluator = renderControlPoint(pathEvaluator, intensityEvaluator)
+        
+        sensation = renderSensation(controlPointEvaluator)
+
+        return = enableSensation(hand.isValid, sensation)
+    }
+
 }
 

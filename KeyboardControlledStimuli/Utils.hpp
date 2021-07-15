@@ -53,8 +53,10 @@ template <typename IntType>
 void print_element(std::vector<IntType> vec, bool p_size = false) {
   if (p_size)
     std::cout << "size: " << vec.size() << std::endl;
-  for (IntType d : vec)
+  for (IntType d : vec) {
     print_element(d);
+    std::cout << std::endl;
+  }
   std::cout << std::endl;
 };
 

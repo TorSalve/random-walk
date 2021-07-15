@@ -1,0 +1,69 @@
+{
+  "shared_params": {
+    "intensity": [ 1 ],
+    "frequency": [ 16, 125, 250 ],
+    "duration": [ 4000 ],
+    "meta_frequency": [ 1, 8, 16 ]
+  },
+  "sensations": [
+    {
+      "name": "B1",
+      "sensation": "RW.Brush",
+      "shared_params": {
+        "frequency": "frequency",
+        "duration": "duration",
+        "intensity": "intensity"
+      },
+      "params": {
+        "meta_frequency": 1,
+        "scanFrequency": 0.25
+      }
+    },
+    {
+      "name": "B8",
+      "sensation": "RW.Brush",
+      "shared_params": {
+        "frequency": "frequency",
+        "duration": "duration",
+        "intensity": "intensity"
+      },
+      "params": {
+        "meta_frequency": 8,
+        "scanFrequency": 2
+      }
+    },
+    {
+      "name": "B16",
+      "sensation": "RW.Brush",
+      "shared_params": {
+        "frequency": "frequency",
+        "duration": "duration",
+        "intensity": "intensity"
+      },
+      "params": {
+        "meta_frequency": 16,
+        "scanFrequency": 4
+      }
+    },
+    {
+      "name": "AMP",
+      "sensation": "RW.AmplitudeModulatedPoint",
+      "shared_params": {
+        "intensity": "maxIntensity",
+        "frequency": "frequency",
+        "meta_frequency": "meta_frequency",
+        "duration": "duration"
+      }
+    },
+    {
+      "name": "RIP",
+      "sensation": "RW.Ripple",
+      "shared_params": {
+        "intensity": "intensity",
+        "frequency": "frequency",
+        "meta_frequency": "meta_frequency",
+        "duration": "duration"
+      }
+    }
+  ]
+}

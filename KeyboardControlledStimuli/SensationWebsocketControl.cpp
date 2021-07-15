@@ -24,6 +24,7 @@
 
 #include "LeapHandConverter.hpp"
 
+#include "Timer.hpp"
 #include "Utils.hpp"
 
 #ifndef M_PI
@@ -91,7 +92,7 @@ int entry(int argc, char* argv[]) {
   }
 #pragma endregion
 
-  bool randomize = true;
+  bool randomize = false;
   bool advance_with_websocket = false;
 #pragma region INIT_WS
   if (advance_with_websocket) {
@@ -122,7 +123,7 @@ int entry(int argc, char* argv[]) {
 
   json jsensations;
   try {
-    std::ifstream fj("SensationConfigs/Sensations.json");
+    std::ifstream fj("SensationConfigs/Pilot.json");
     try {
       fj >> jsensations;
     } catch (const std::exception&) {
@@ -247,7 +248,7 @@ int entry(int argc, char* argv[]) {
           std::stringstream stream;
           stream << std::fixed << std::setprecision(3) << value;
           std::string s = stream.str();
-          k = k + "_" + key.at(0) + s;
+          k = k + "_" + key.substr(0, 2) + s;
           params.insert({key, value});
         }
         _sensations.insert({k, {sensation_name, sensation_id, params}});
@@ -278,6 +279,10 @@ int entry(int argc, char* argv[]) {
   }
 
   auto setSensation = [&](std::string s_key, bool notify) {
+    if (!emitter.isPaused().value()) {
+      emitter.pause();
+    }
+
     auto sensation_t = _sensations[s_key];
     std::string sensation_name = std::get<0>(sensation_t);
     std::string sensation_id = std::get<1>(sensation_t);
@@ -295,8 +300,10 @@ int entry(int argc, char* argv[]) {
     auto sensation_instance = SensationInstance(hand_tracked_sensation.value());
 
     auto p_keys = Utils::map_get_keys(params);
+    auto excluded_keys = {"duration", "meta_frequency"};
     for (auto& parameter : p_keys) {
-      if (parameter != "duration") {
+      if (std::find(excluded_keys.begin(), excluded_keys.end(), parameter) ==
+          excluded_keys.end()) {
         sensation_instance.set(parameter, params[parameter]);
       }
     }
@@ -306,15 +313,47 @@ int entry(int argc, char* argv[]) {
     if (!set_result) {
       throw "Could not set sensation";
     }
+    emitter.updateSensationArguments(sensation_instance);
+    try {
+      emitter.resume();
+    } catch (const std::exception&) {
+    }
 
     auto duration_it = params.find("duration");
     if (duration_it != params.end()) {
       float duration = duration_it->second;
-      boost::asio::io_context io;
-      boost::asio::steady_timer t(
-          io, boost::asio::chrono::milliseconds((int)duration));
-      t.async_wait([&](const boost::system::error_code&) { emitter.pause(); });
-      io.run();
+
+      auto meta_frequency_it = params.find("meta_frequency");
+      if (meta_frequency_it != params.end()) {
+        float meta_frequency = meta_frequency_it->second;
+        int frac = (int)duration / meta_frequency;
+
+        auto get_now = []() {
+          return (std::chrono::system_clock::now().time_since_epoch() /
+                  std::chrono::milliseconds(1));
+        };
+
+        auto toggle_emitter = [&]() {
+          if (emitter.isPaused().value()) {
+            emitter.resume();
+          } else {
+            emitter.pause();
+          }
+        };
+
+        Time::Timer t = Time::Timer();
+
+        std::cout << "start playing \t\t" << get_now() << std::endl;
+        t.setInterval(toggle_emitter, frac);
+        t.setTimeout(
+            [&]() {
+              t.stop();
+              emitter.clearSensation();
+              std::cout << "finished playing \t" << get_now() << std::endl
+                        << "-" << std::endl;
+            },
+            duration);
+      }
     }
 
     // auto duration = params["duration"];
@@ -336,6 +375,9 @@ int entry(int argc, char* argv[]) {
   };
 
   std::cout << "Hit ENTER to quit..." << std::endl;
+  if (!advance_with_websocket) {
+    std::cout << "Hit q to switch sensation..." << std::endl;
+  }
 
   // Load the data of the named Sensation
   auto sensation_keys = Utils::map_get_keys(_sensations);
@@ -344,6 +386,7 @@ int entry(int argc, char* argv[]) {
                  std::default_random_engine(42));
   }
 
+  Utils::print_element(sensation_keys);
   std::cout << sensation_keys.size() << " total combinations" << std::endl;
 
   int idx = 0;
@@ -379,7 +422,6 @@ int entry(int argc, char* argv[]) {
     if (!emitter_result)
       return 2;
 
-    emitter.pause();
     if (advance_with_websocket) {
       while (ws->getReadyState() != easywsclient::WebSocket::CLOSED) {
         ws->poll();
@@ -387,10 +429,6 @@ int entry(int argc, char* argv[]) {
           bool next = message == "\"stmnext\"";
           bool replay = message == "\"stmreplay\"";
           if (next || replay) {
-            if (emitter.isPaused().value()) {
-              emitter.resume();
-            }
-
             sensation_instance = setSensation(sensation_keys[idx], next);
 
             if (next) {
@@ -421,10 +459,6 @@ int entry(int argc, char* argv[]) {
 
         // space or q
         if (key == 32 || key == 113) {
-          if (emitter.isPaused().value()) {
-            emitter.resume();
-          }
-
           if (advance) {
             if (key != 32) {
               idx += 1;
