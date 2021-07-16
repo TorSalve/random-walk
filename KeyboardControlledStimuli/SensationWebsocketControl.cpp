@@ -34,8 +34,26 @@
 using json = nlohmann::json;
 
 namespace RandomWalk::Sensations::Websockets {
+
+const bool randomize = true;
+const bool advance_with_websocket = true;
+const int repetitions = 2;
+
+// const std::string sensation_configuration = "SensationConfigs/Test.json";
+const std::string sensation_configuration = "SensationConfigs/Pilot.json";
+
 using namespace Ultraleap::Haptics;
 static easywsclient::WebSocket::pointer ws = NULL;
+
+// #0 parameter name, #1 parameter value
+typedef std::map<std::string, float> parameters;
+// #0 sensation name, #1 sensation key, #2 parameters
+typedef std::tuple<std::string, std::string, parameters> sensation;
+// #0 sensation identifier, #1 sensation
+typedef std::map<std::string, sensation> sensations;
+typedef std::vector<float> sensation_value;
+// #0 sensation name, #1 sensation key
+typedef std::map<std::string, sensation_value> sensation_values;
 
 class FrameListener : public Leap::Listener {
  public:
@@ -92,8 +110,6 @@ int entry(int argc, char* argv[]) {
   }
 #pragma endregion
 
-  bool randomize = false;
-  bool advance_with_websocket = false;
 #pragma region INIT_WS
   if (advance_with_websocket) {
     const std::string ws_url = "ws://localhost:8081/";
@@ -101,6 +117,7 @@ int entry(int argc, char* argv[]) {
   }
 #pragma endregion
 
+#pragma region LOAD_SENSATIONS_PACKAGE
   // Load the sensation package
   const auto sensation_package_result =
       SensationPackage::loadFromFile(lib, "StandardSensations.ssp");
@@ -109,21 +126,15 @@ int entry(int argc, char* argv[]) {
     return 1;
   }
   const auto& sensation_package = sensation_package_result.value();
+#pragma endregion
 
-  typedef std::map<std::string, float> parameters;
-  // #0 sensation name, #1 sensation key
-  typedef std::map<std::string,
-                   std::tuple<std::string, std::string, parameters>>
-      sensations;
-  typedef std::vector<float> sensation_value;
-  // #0 sensation name, #1 sensation key
-  typedef std::map<std::string, sensation_value> sensation_values;
+#pragma region PARSE_SENSATION_CONFIG
 
   sensations _sensations;
 
   json jsensations;
   try {
-    std::ifstream fj("SensationConfigs/Pilot.json");
+    std::ifstream fj(sensation_configuration);
     try {
       fj >> jsensations;
     } catch (const std::exception&) {
@@ -277,24 +288,26 @@ int entry(int argc, char* argv[]) {
       }
     }
   }
+#pragma endregion
 
-  auto setSensation = [&](std::string s_key, bool notify) {
+  auto setSensation = [&](sensation _sensation, bool notify = false,
+                          bool play = true) {
     if (!emitter.isPaused().value()) {
       emitter.pause();
     }
 
-    auto sensation_t = _sensations[s_key];
-    std::string sensation_name = std::get<0>(sensation_t);
-    std::string sensation_id = std::get<1>(sensation_t);
-    parameters params = std::get<2>(sensation_t);
-
-    std::cout << "now playing: " << s_key << std::endl;
+    // auto sensation_t = _sensations[s_key];
+    std::string sensation_name = std::get<0>(_sensation);
+    std::string sensation_id = std::get<1>(_sensation);
+    parameters params = std::get<2>(_sensation);
 
     const auto hand_tracked_sensation =
         sensation_package.sensation(sensation_id);
     if (!hand_tracked_sensation) {
       throw "Unknown sensation";
     }
+
+    std::cout << "now playing: " << sensation_name << std::endl;
 
     // Created an instance of the Sensation
     auto sensation_instance = SensationInstance(hand_tracked_sensation.value());
@@ -324,7 +337,7 @@ int entry(int argc, char* argv[]) {
       float duration = duration_it->second;
 
       auto meta_frequency_it = params.find("meta_frequency");
-      if (meta_frequency_it != params.end()) {
+      if (meta_frequency_it != params.end() && play) {
         float meta_frequency = meta_frequency_it->second;
         int frac = (int)duration / meta_frequency;
 
@@ -356,10 +369,6 @@ int entry(int argc, char* argv[]) {
       }
     }
 
-    // auto duration = params["duration"];
-    // std::this_thread::sleep_for(std::chrono::milliseconds((int)duration));
-    // emitter.pause();
-
     if (notify && advance_with_websocket) {
       json jsensation;
       jsensation["name"] = sensation_name;
@@ -379,20 +388,33 @@ int entry(int argc, char* argv[]) {
     std::cout << "Hit q to switch sensation..." << std::endl;
   }
 
+#pragma region RANDOMIZATION
+
   // Load the data of the named Sensation
   auto sensation_keys = Utils::map_get_keys(_sensations);
-  if (randomize) {
-    std::shuffle(sensation_keys.begin(), sensation_keys.end(),
-                 std::default_random_engine(42));
-  }
 
-  Utils::print_element(sensation_keys);
-  std::cout << sensation_keys.size() << " total combinations" << std::endl;
+  auto shuffle_keys = [&]() {
+    if (randomize) {
+      std::shuffle(sensation_keys.begin(), sensation_keys.end(),
+                   std::default_random_engine(42));
+    }
+  };
+  shuffle_keys();
+#pragma endregion
+
+  // Utils::print_element(sensation_keys);
+  std::cout << sensation_keys.size() << " combinations, " << repetitions
+            << " repetitions, " << sensation_keys.size() * repetitions
+            << " total trials" << std::endl;
 
   int idx = 0;
   try {
+    sensation training_sensation = {"training_sensation",
+                                    "RW.AmplitudeModulatedPoint",
+                                    {{"maxIntensity", 1}, {"frequency", 250}}};
     SensationInstance sensation_instance =
-        setSensation(sensation_keys[idx], false);
+        setSensation(training_sensation, false, false);
+#pragma region LEAP_SETUP
 
     // Set up Leap
     Leap::Controller leap_control;
@@ -416,28 +438,47 @@ int entry(int argc, char* argv[]) {
 
     FrameListener frame_listener = FrameListener(on_frame_callback);
     leap_control.addListener(frame_listener);
+#pragma endregion
 
     // Start the emitter
     const auto emitter_result = emitter.start();
     if (!emitter_result)
       return 2;
+      // emitter.pause();
+
+#pragma region SENSATION_LOOP
+
+    int current_repetition = 0;
+
+    auto nextSensation = [&]() {
+      std::string current_sensation = sensation_keys[idx];
+      sensation_instance =
+          setSensation(_sensations[current_sensation], advance_with_websocket);
+
+      idx += 1;
+      if (idx >= sensation_keys.size()) {
+        idx = 0;
+        std::cout << "end reached ---------------------" << std::endl;
+
+        current_repetition += 1;
+        if (current_repetition == repetitions) {
+          std::cout << "no more repetitions -------------" << std::endl;
+          if (advance_with_websocket)
+            ws->send("stmend");
+        }
+        shuffle_keys();
+      }
+    };
 
     if (advance_with_websocket) {
       while (ws->getReadyState() != easywsclient::WebSocket::CLOSED) {
         ws->poll();
         ws->dispatch([&](const std::string& message) mutable {
-          bool next = message == "\"stmnext\"";
-          bool replay = message == "\"stmreplay\"";
-          if (next || replay) {
-            sensation_instance = setSensation(sensation_keys[idx], next);
-
-            if (next) {
-              idx += 1;
-              if (idx >= sensation_keys.size()) {
-                idx = 0;
-                std::cout << "end reached ---------------------" << std::endl;
-              }
-            }
+          if (message == "\"sdc\"") {
+            emitter.pause();
+          }
+          if (message == "\"stmnext\"") {
+            nextSensation();
           }
         });
 
@@ -448,37 +489,18 @@ int entry(int argc, char* argv[]) {
         }
       }
     } else {
-      bool advance = false;
       while (true) {
         int key = getch_noblock();
+
+        // q
+        if (key == 113) {
+          nextSensation();
+        }
 
         // enter
         if (key == 13) {
           break;
         }
-
-        // space or q
-        if (key == 32 || key == 113) {
-          if (advance) {
-            if (key != 32) {
-              idx += 1;
-            }
-            if (idx >= sensation_keys.size()) {
-              idx = 0;
-              std::cout << "end reached ---------------------" << std::endl;
-            }
-          }
-
-          sensation_instance = setSensation(sensation_keys[idx], false);
-          advance = true;
-        }
-
-        /*switch (Utils::hash(key.c_str())) {
-          case Utils::hash("q"):
-          default:
-            std::cout << "Command unknown: " << key << std::endl;
-            break;
-        }*/
       }
     }
 
@@ -490,5 +512,6 @@ int entry(int argc, char* argv[]) {
     std::cout << excpt.what() << std::endl;
     return 4;
   }
+#pragma endregion
 }
 }  // namespace RandomWalk::Sensations::Websockets

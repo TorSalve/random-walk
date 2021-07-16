@@ -1,18 +1,52 @@
 {
   "shared_params": {
     "intensity": [ 1 ],
-    "frequency": [ 16, 125, 250 ],
+    "frequency": [ 250 ],
     "duration": [ 4000 ],
-    "meta_frequency": [ 1 ]
+    "meta_frequency": [ 1, 8, 16 ],
+    "circ_radius": 0.02
   },
   "sensations": [
     {
+      "name": "C1",
       "sensation": "RW.Circle",
       "shared_params": {
         "intensity": "intensity",
         "frequency": "frequency",
-        "meta_frequency": "meta_frequency",
-        "duration": "duration"
+        "duration": "duration",
+        "circ_radius": "radius"
+      },
+      "params": {
+        "meta_frequency": 1,
+        "circ_frequency": 0.25
+      }
+    },
+    {
+      "name": "C8",
+      "sensation": "RW.Circle",
+      "shared_params": {
+        "intensity": "intensity",
+        "frequency": "frequency",
+        "duration": "duration",
+        "circ_radius": "radius"
+      },
+      "params": {
+        "meta_frequency": 8,
+        "circ_frequency": 2
+      }
+    },
+    {
+      "name": "C16",
+      "sensation": "RW.Circle",
+      "shared_params": {
+        "intensity": "intensity",
+        "frequency": "frequency",
+        "duration": "duration",
+        "circ_radius": "radius"
+      },
+      "params": {
+        "meta_frequency": 16,
+        "circ_frequency": 4
       }
     }
   ]

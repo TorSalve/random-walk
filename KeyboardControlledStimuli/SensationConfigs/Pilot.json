@@ -7,6 +7,55 @@
   },
   "sensations": [
     {
+      "name": "AttentionCheck",
+      "sensation": "RW.AmplitudeModulatedPoint",
+      "params": {
+        "maxIntensity": 0
+      }
+    },
+    {
+      "name": "C1",
+      "sensation": "RW.Circle",
+      "shared_params": {
+        "intensity": "intensity",
+        "frequency": "frequency",
+        "duration": "duration",
+        "circ_radius": "radius"
+      },
+      "params": {
+        "meta_frequency": 1,
+        "circ_frequency": 0.25
+      }
+    },
+    {
+      "name": "C8",
+      "sensation": "RW.Circle",
+      "shared_params": {
+        "intensity": "intensity",
+        "frequency": "frequency",
+        "duration": "duration",
+        "circ_radius": "radius"
+      },
+      "params": {
+        "meta_frequency": 8,
+        "circ_frequency": 2
+      }
+    },
+    {
+      "name": "C16",
+      "sensation": "RW.Circle",
+      "shared_params": {
+        "intensity": "intensity",
+        "frequency": "frequency",
+        "duration": "duration",
+        "circ_radius": "radius"
+      },
+      "params": {
+        "meta_frequency": 16,
+        "circ_frequency": 4
+      }
+    },
+    {
       "name": "B1",
       "sensation": "RW.Brush",
       "shared_params": {

@@ -570,7 +570,7 @@ namespace HandSensations
     #
     #   @hand      - The hand to project the circle onto
     #   @radius    - The radius of the circle (metres)
-    #   @frequency - The frequency at which the ControlPoint moves around the circle (Hz)
+    #   @circ_frequency - The frequency at which the ControlPoint moves around the circle (Hz)
     #   @intensity - The intensity of the Control Point
     #]]
     rwcircleWithFixedFrequency(
