@@ -3,7 +3,8 @@
     "intensity": [ 1 ],
     "frequency": [ 16, 125, 250 ],
     "duration": [ 4000 ],
-    "meta_frequency": [ 1, 8, 16 ]
+    "meta_frequency": [ 1, 8, 16 ],
+    "circ_radius": 0.02
   },
   "sensations": [
     {

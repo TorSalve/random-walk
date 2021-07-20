@@ -39,8 +39,8 @@ const bool randomize = true;
 const bool advance_with_websocket = true;
 const int repetitions = 2;
 
-// const std::string sensation_configuration = "SensationConfigs/Test.json";
-const std::string sensation_configuration = "SensationConfigs/Pilot.json";
+const std::string sensation_configuration = "SensationConfigs/Test.json";
+// const std::string sensation_configuration = "SensationConfigs/Pilot.json";
 
 using namespace Ultraleap::Haptics;
 static easywsclient::WebSocket::pointer ws = NULL;
@@ -396,7 +396,7 @@ int entry(int argc, char* argv[]) {
   auto shuffle_keys = [&]() {
     if (randomize) {
       std::shuffle(sensation_keys.begin(), sensation_keys.end(),
-                   std::default_random_engine(42));
+                   std::default_random_engine(time(NULL)));
     }
   };
   shuffle_keys();
@@ -458,13 +458,15 @@ int entry(int argc, char* argv[]) {
       idx += 1;
       if (idx >= sensation_keys.size()) {
         idx = 0;
-        std::cout << "end reached ---------------------" << std::endl;
-
         current_repetition += 1;
-        if (current_repetition == repetitions) {
+        std::cout << "end reached ---------------------" << repetitions << ": "
+                  << current_repetition << std::endl;
+
+        if (current_repetition >= repetitions) {
           std::cout << "no more repetitions -------------" << std::endl;
-          if (advance_with_websocket)
+          if (advance_with_websocket) {
             ws->send("stmend");
+          }
         }
         shuffle_keys();
       }

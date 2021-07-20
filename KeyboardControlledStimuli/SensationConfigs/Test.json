@@ -20,34 +20,6 @@
         "meta_frequency": 1,
         "circ_frequency": 0.25
       }
-    },
-    {
-      "name": "C8",
-      "sensation": "RW.Circle",
-      "shared_params": {
-        "intensity": "intensity",
-        "frequency": "frequency",
-        "duration": "duration",
-        "circ_radius": "radius"
-      },
-      "params": {
-        "meta_frequency": 8,
-        "circ_frequency": 2
-      }
-    },
-    {
-      "name": "C16",
-      "sensation": "RW.Circle",
-      "shared_params": {
-        "intensity": "intensity",
-        "frequency": "frequency",
-        "duration": "duration",
-        "circ_radius": "radius"
-      },
-      "params": {
-        "meta_frequency": 16,
-        "circ_frequency": 4
-      }
     }
   ]
 }
