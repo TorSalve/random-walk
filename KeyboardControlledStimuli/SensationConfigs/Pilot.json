@@ -10,7 +10,11 @@
     {
       "name": "AttentionCheck",
       "sensation": "RW.AmplitudeModulatedPoint",
+      "shared_params": {
+        "duration": "duration"
+      },
       "params": {
+        "meta_frequency": 1,
         "maxIntensity": 0
       }
     },

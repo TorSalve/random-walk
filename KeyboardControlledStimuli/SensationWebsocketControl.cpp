@@ -37,10 +37,10 @@ namespace RandomWalk::Sensations::Websockets {
 
 const bool randomize = true;
 const bool advance_with_websocket = true;
-const int repetitions = 2;
+const int repetitions = 1;
 
-const std::string sensation_configuration = "SensationConfigs/Test.json";
-// const std::string sensation_configuration = "SensationConfigs/Pilot.json";
+// const std::string sensation_configuration = "SensationConfigs/Test.json";
+const std::string sensation_configuration = "SensationConfigs/Pilot.json";
 
 using namespace Ultraleap::Haptics;
 static easywsclient::WebSocket::pointer ws = NULL;
@@ -290,8 +290,8 @@ int entry(int argc, char* argv[]) {
   }
 #pragma endregion
 
-  auto setSensation = [&](sensation _sensation, bool notify = false,
-                          bool play = true) {
+  auto setSensation = [&](std::string _sensation_id, sensation _sensation,
+                          bool notify = false, bool play = true) {
     if (!emitter.isPaused().value()) {
       emitter.pause();
     }
@@ -364,6 +364,9 @@ int entry(int argc, char* argv[]) {
               emitter.clearSensation();
               std::cout << "finished playing \t" << get_now() << std::endl
                         << "-" << std::endl;
+              if (advance_with_websocket) {
+                ws->send("stmfinishedplaying");
+              }
             },
             duration);
       }
@@ -372,7 +375,8 @@ int entry(int argc, char* argv[]) {
     if (notify && advance_with_websocket) {
       json jsensation;
       jsensation["name"] = sensation_name;
-      jsensation["id"] = sensation_id;
+      jsensation["sensation"] = sensation_id;
+      jsensation["id"] = _sensation_id;
 
       for (auto param : params) {
         jsensation[param.first] = param.second;
@@ -407,13 +411,13 @@ int entry(int argc, char* argv[]) {
             << " repetitions, " << sensation_keys.size() * repetitions
             << " total trials" << std::endl;
 
-  int idx = 0;
+  int idx = -1;
   try {
     sensation training_sensation = {"training_sensation",
                                     "RW.AmplitudeModulatedPoint",
                                     {{"maxIntensity", 1}, {"frequency", 250}}};
     SensationInstance sensation_instance =
-        setSensation(training_sensation, false, false);
+        setSensation("", training_sensation, false, false);
 #pragma region LEAP_SETUP
 
     // Set up Leap
@@ -450,17 +454,20 @@ int entry(int argc, char* argv[]) {
 
     int current_repetition = 0;
 
-    auto nextSensation = [&]() {
-      std::string current_sensation = sensation_keys[idx];
-      sensation_instance =
-          setSensation(_sensations[current_sensation], advance_with_websocket);
+    auto nextSensation = [&](bool advance = true) {
+      if (advance) {
+        idx += 1;
+      }
 
-      idx += 1;
+      std::cout << idx << "/" << sensation_keys.size() << std::endl;
+      std::string current_sensation = sensation_keys[idx];
+      sensation_instance = setSensation(
+          current_sensation, _sensations[current_sensation], advance);
+
       if (idx >= sensation_keys.size()) {
         idx = 0;
         current_repetition += 1;
-        std::cout << "end reached ---------------------" << repetitions << ": "
-                  << current_repetition << std::endl;
+        std::cout << "end reached ---------------------" << std::endl;
 
         if (current_repetition >= repetitions) {
           std::cout << "no more repetitions -------------" << std::endl;
@@ -479,8 +486,10 @@ int entry(int argc, char* argv[]) {
           if (message == "\"sdc\"") {
             emitter.pause();
           }
-          if (message == "\"stmnext\"") {
-            nextSensation();
+          bool next = message == "\"stmnext\"";
+          bool replay = message == "\"stmreplay\"";
+          if (next || replay) {
+            nextSensation(next);
           }
         });
 
