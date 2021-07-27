@@ -459,10 +459,7 @@ int entry(int argc, char* argv[]) {
         idx += 1;
       }
 
-      std::cout << idx << "/" << sensation_keys.size() << std::endl;
-      std::string current_sensation = sensation_keys[idx];
-      sensation_instance = setSensation(
-          current_sensation, _sensations[current_sensation], advance);
+      std::cout << "idx: " << idx << std::endl;
 
       if (idx >= sensation_keys.size()) {
         idx = 0;
@@ -476,6 +473,13 @@ int entry(int argc, char* argv[]) {
           }
         }
         shuffle_keys();
+      }
+
+      if (idx < sensation_keys.size()) {
+        std::cout << idx << "/" << sensation_keys.size() << std::endl;
+        std::string current_sensation = sensation_keys[idx];
+        sensation_instance = setSensation(
+            current_sensation, _sensations[current_sensation], advance);
       }
     };
 
