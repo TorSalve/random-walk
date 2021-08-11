@@ -33,14 +33,15 @@
 
 using json = nlohmann::json;
 
-namespace RandomWalk::Sensations::Websockets {
+namespace RandomWalk::Interview::Websockets {
 
 const bool randomize = true;
 const bool advance_with_websocket = true;
 const int repetitions = 1;
 
-const std::string sensation_configuration = "SensationConfigs/Test.json";
-// const std::string sensation_configuration = "SensationConfigs/Pilot.json";
+// const std::string sensation_configuration = "SensationConfigs/Test.json";
+// const std::string sensation_configuration = "SensationConfigs/Study1.json";
+const std::string sensation_configuration = "SensationConfigs/Study2.json";
 
 using namespace Ultraleap::Haptics;
 static easywsclient::WebSocket::pointer ws = NULL;
@@ -290,6 +291,23 @@ int entry(int argc, char* argv[]) {
   }
 #pragma endregion
 
+#pragma region RANDOMIZATION
+
+  // Load the data of the named Sensation
+  auto sensation_keys = Utils::map_get_keys(_sensations);
+
+  auto shuffle_keys = [&]() {
+    if (randomize) {
+      std::shuffle(sensation_keys.begin(), sensation_keys.end(),
+                   std::default_random_engine(time(NULL)));
+    }
+  };
+  shuffle_keys();
+#pragma endregion
+
+  int current_repetition = 0;
+  int idx = -1;
+
   auto setSensation = [&](std::string _sensation_id, sensation _sensation,
                           bool notify = false, bool play = true) {
     if (!emitter.isPaused().value()) {
@@ -367,6 +385,22 @@ int entry(int argc, char* argv[]) {
               if (advance_with_websocket) {
                 ws->send("stmfinishedplaying");
               }
+
+              // check for end?
+              std::cout << "idx: " << idx
+                        << " senskeys:" << sensation_keys.size() << std::endl;
+              if (idx + 1 >= sensation_keys.size()) {
+                current_repetition += 1;
+                std::cout << "end reached ---------------------" << std::endl;
+
+                if (current_repetition >= repetitions) {
+                  std::cout << "no more repetitions -------------" << std::endl;
+                  if (advance_with_websocket) {
+                    ws->send("stmend");
+                  }
+                }
+                // shuffle_keys();
+              }
             },
             duration);
       }
@@ -387,31 +421,17 @@ int entry(int argc, char* argv[]) {
     return sensation_instance;
   };
 
+  std::cout << "Running interview configuration." << std::endl;
   std::cout << "Hit ENTER to quit..." << std::endl;
   if (!advance_with_websocket) {
     std::cout << "Hit q to switch sensation..." << std::endl;
   }
-
-#pragma region RANDOMIZATION
-
-  // Load the data of the named Sensation
-  auto sensation_keys = Utils::map_get_keys(_sensations);
-
-  auto shuffle_keys = [&]() {
-    if (randomize) {
-      std::shuffle(sensation_keys.begin(), sensation_keys.end(),
-                   std::default_random_engine(time(NULL)));
-    }
-  };
-  shuffle_keys();
-#pragma endregion
 
   // Utils::print_element(sensation_keys);
   std::cout << sensation_keys.size() << " combinations, " << repetitions
             << " repetitions, " << sensation_keys.size() * repetitions
             << " total trials" << std::endl;
 
-  int idx = -1;
   try {
     sensation training_sensation = {"training_sensation",
                                     "RW.AmplitudeModulatedPoint",
@@ -451,29 +471,12 @@ int entry(int argc, char* argv[]) {
       // emitter.pause();
 
 #pragma region SENSATION_LOOP
-
-    int current_repetition = 0;
-
     auto nextSensation = [&](bool advance = true) {
       if (advance) {
         idx += 1;
       }
 
       std::cout << "idx: " << idx << std::endl;
-
-      if (idx >= sensation_keys.size()) {
-        idx = 0;
-        current_repetition += 1;
-        std::cout << "end reached ---------------------" << std::endl;
-
-        if (current_repetition >= repetitions) {
-          std::cout << "no more repetitions -------------" << std::endl;
-          if (advance_with_websocket) {
-            ws->send("stmend");
-          }
-        }
-        shuffle_keys();
-      }
 
       if (idx < sensation_keys.size()) {
         std::cout << idx << "/" << sensation_keys.size() << std::endl;
@@ -497,6 +500,10 @@ int entry(int argc, char* argv[]) {
           }
         });
 
+        if (idx >= static_cast<int>(sensation_keys.size())) {
+          break;
+        }
+
         int key = getch_noblock();
         // enter
         if (key == 13) {
@@ -505,6 +512,10 @@ int entry(int argc, char* argv[]) {
       }
     } else {
       while (true) {
+        if (idx >= static_cast<int>(sensation_keys.size())) {
+          break;
+        }
+
         int key = getch_noblock();
 
         // q
@@ -529,4 +540,4 @@ int entry(int argc, char* argv[]) {
   }
 #pragma endregion
 }
-}  // namespace RandomWalk::Sensations::Websockets
+}  // namespace RandomWalk::Interview::Websockets

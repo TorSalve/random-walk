@@ -27,3 +27,7 @@ int entry(int argc, char* argv[]);
 namespace RandomWalk::Sensations::Websockets {
 int entry(int argc, char* argv[]);
 }
+
+namespace RandomWalk::Interview::Websockets {
+int entry(int argc, char* argv[]);
+}

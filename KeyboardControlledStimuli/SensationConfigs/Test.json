@@ -1,24 +1,33 @@
 {
   "shared_params": {
     "intensity": [ 1 ],
-    "frequency": [ 250 ],
     "duration": [ 4000 ],
-    "meta_frequency": [ 1, 8, 16 ],
     "circ_radius": 0.02
   },
   "sensations": [
     {
-      "name": "C1",
-      "sensation": "RW.Circle",
+      "name": "Brush_125_0.5",
+      "sensation": "RW.Brush",
       "shared_params": {
         "intensity": "intensity",
-        "frequency": "frequency",
-        "duration": "duration",
-        "circ_radius": "radius"
+        "duration": "duration"
       },
       "params": {
+        "frequency": 125,
         "meta_frequency": 1,
-        "circ_frequency": 0.25
+        "scanFrequency": 0.25
+      }
+    },
+    {
+      "name": "Point_125_0.5",
+      "sensation": "RW.AmplitudeModulatedPoint",
+      "shared_params": {
+        "intensity": "intensity",
+        "duration": "duration"
+      },
+      "params": {
+        "frequency": 125,
+        "meta_frequency": 1
       }
     }
   ]

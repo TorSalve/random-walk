@@ -1,0 +1,72 @@
+{
+  "shared_params": {
+    "intensity": [ 1 ],
+    "duration": [ 4000 ],
+    "circ_radius": 0.02
+  },
+  "sensations": [
+    {
+      "name": "Random_250_8",
+      "sensation": "RW.Ripple",
+      "shared_params": {
+        "intensity": "intensity",
+        "duration": "duration"
+      },
+      "params": {
+        "frequency": 250,
+        "meta_frequency": 16
+      }
+    },
+    {
+      "name": "Circle_125_8",
+      "sensation": "RW.Circle",
+      "shared_params": {
+        "intensity": "intensity",
+        "duration": "duration",
+        "circ_radius": "radius"
+      },
+      "params": {
+        "circ_frequency": 4.0,
+        "frequency": 125.0,
+        "meta_frequency": 16
+      }
+    },
+    {
+      "name": "Point_16_8",
+      "sensation": "RW.AmplitudeModulatedPoint",
+      "shared_params": {
+        "intensity": "intensity",
+        "duration": "duration"
+      },
+      "params": {
+        "frequency": 16,
+        "meta_frequency": 16
+      }
+    },
+    {
+      "name": "Brush_125_0.5",
+      "sensation": "RW.Brush",
+      "shared_params": {
+        "intensity": "intensity",
+        "duration": "duration"
+      },
+      "params": {
+        "frequency": 125,
+        "meta_frequency": 1,
+        "scanFrequency": 0.25
+      }
+    },
+    {
+      "name": "Point_250_0.5",
+      "sensation": "RW.AmplitudeModulatedPoint",
+      "shared_params": {
+        "intensity": "intensity",
+        "duration": "duration"
+      },
+      "params": {
+        "frequency": 250,
+        "meta_frequency": 1
+      }
+    }
+  ]
+}

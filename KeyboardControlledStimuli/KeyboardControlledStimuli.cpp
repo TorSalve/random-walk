@@ -15,5 +15,7 @@ int main(int argc, char* argv[]) {
 
   // return RandomWalk::Parameters::Websockets::entry(argc, argv);
 
-  return RandomWalk::Sensations::Websockets::entry(argc, argv);
+  // return RandomWalk::Sensations::Websockets::entry(argc, argv);
+
+  return RandomWalk::Interview::Websockets::entry(argc, argv);
 }
