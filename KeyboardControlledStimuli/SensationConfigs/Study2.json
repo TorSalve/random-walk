@@ -2,7 +2,7 @@
   "shared_params": {
     "intensity": [ 1 ],
     "duration": [ 4000 ],
-    "circ_radius": 0.02
+    "circ_radius": 0.024
   },
   "sensations": [
     {
@@ -39,7 +39,7 @@
         "duration": "duration"
       },
       "params": {
-        "frequency": 16,
+        "frequency": 125,
         "meta_frequency": 16
       }
     },
